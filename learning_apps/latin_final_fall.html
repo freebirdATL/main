@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Latin Sunrise Quiz</title>
+  <style>
+    :root {
+      --sunrise: #f6d365;
+      --sunrise-two: #fda085;
+      --deep-sky: #203a43;
+      --forest: #3e6b46;
+      --paper: rgba(255, 255, 255, 0.9);
+      --accent: #d46a6a;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      --joie-one: 0 14px 22px rgba(240, 158, 238, 0.25);
+      --joie-two: 0 14px 22px rgba(241, 57, 238, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      color: #1d2d44;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(120deg, rgba(32, 58, 67, 0.6), rgba(62, 107, 70, 0.7)),
+        url('https://images.unsplash.com/photo-1455156218388-5e61b5268184?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat fixed;
+      padding: 24px;
+    }
+
+    .glass {
+      width: min(1100px, 100%);
+      background: var(--paper);
+      backdrop-filter: blur(4px);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 28px 32px 36px;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .greeting {
+      font-size: clamp(1.4rem, 2vw + 1rem, 2.2rem);
+      font-weight: 700;
+      color: var(--deep-sky);
+    }
+
+    .subhead {
+      margin: 6px 0 0;
+      color: #2f4f4f;
+      font-size: 1rem;
+      max-width: 650px;
+      line-height: 1.5;
+    }
+
+    .pill {
+      background: linear-gradient(120deg, var(--sunrise), var(--sunrise-two));
+      color: #203a43;
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      box-shadow: var(--shadow);
+    }
+
+    .selectors {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin: 18px 0 10px;
+    }
+
+    .selector {
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      background: white;
+      cursor: pointer;
+      font-weight: 700;
+      color: #234;
+      transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+    }
+
+    .selector:hover,
+    .selector:focus-visible {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+      border-color: var(--sunrise-two);
+      outline: none;
+    }
+
+    .selector.active {
+      border-color: var(--accent);
+      box-shadow: 0 14px 22px rgba(212, 106, 106, 0.25);
+      color: #7a1c1c;
+    }
+
+    .quiz-card {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      box-shadow: var(--shadow);
+    }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .badge {
+      background: rgba(62, 107, 70, 0.12);
+      color: var(--forest);
+      padding: 6px 10px;
+      border-radius: 10px;
+      font-weight: 700;
+      border: 1px solid rgba(62, 107, 70, 0.2);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 8px 0 12px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(120deg, var(--sunrise), var(--sunrise-two));
+      transition: width 220ms ease;
+    }
+
+    .question {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 12px 0 10px;
+      line-height: 1.5;
+      color: #1d2d44;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+      margin: 8px 0 6px;
+    }
+
+    .option-btn {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      background: #f9fbff;
+      cursor: pointer;
+      text-align: left;
+      font-weight: 600;
+      color: #233142;
+      transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease, background 150ms ease;
+    }
+
+    .option-btn:hover:not(.disabled),
+    .option-btn:focus-visible:not(.disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 18px rgba(0, 0, 0, 0.12);
+      border-color: var(--sunrise-two);
+      outline: none;
+    }
+
+    .option-btn.correct {
+      background: rgba(62, 107, 70, 0.14);
+      border-color: var(--forest);
+      color: #214a2d;
+    }
+
+    .option-btn.incorrect {
+      background: rgba(212, 106, 106, 0.18);
+      border-color: var(--accent);
+      color: #7a1c1c;
+    }
+
+    .option-btn.disabled {
+      pointer-events: none;
+      opacity: 0.9;
+    }
+
+    .feedback {
+      min-height: 24px;
+      font-weight: 700;
+      color: #234;
+    }
+
+    .feedback .detail {
+      font-weight: lighter;
+      color: #1d2d44;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button.primary {
+      background: linear-gradient(120deg, var(--sunrise), var(--sunrise-two));
+      border: none;
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-weight: 800;
+      color: #1d2d44;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: transform 150ms ease, box-shadow 150ms ease;
+    }
+
+    button.primary:hover,
+    button.primary:focus-visible {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+      outline: none;
+    }
+
+    .muted {
+      color: #3f4d5c;
+      font-size: 0.95rem;
+    }
+
+    .score-card {
+      background: rgba(62, 107, 70, 0.08);
+      border: 1px solid rgba(62, 107, 70, 0.25);
+      padding: 14px;
+      border-radius: 14px;
+      margin-top: 12px;
+      font-weight: 700;
+      color: #214a2d;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    @media (max-width: 640px) {
+      .options {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="glass" aria-live="polite">
+    <header>
+      <div>
+        <div class="greeting">Good morning, scholar!</div>
+        <p class="subhead">Choose a topic to greet the day with Latin practice. Each quiz presents questions in a fresh, random order so your skills grow stronger every sunrise.</p>
+      </div>
+      <div class="pill">Wildflowers • Mountain Dawn</div>
+    </header>
+
+    <section>
+      <h2 style="margin: 0 0 6px; color: #1d2d44;">Select your path</h2>
+      <div class="selectors" role="list">
+        <button class="selector" data-topic="nouns">Noun declension endings</button>
+        <button class="selector" data-topic="verbs">Verb endings</button>
+        <button class="selector" data-topic="days">Days of the week</button>
+        <button class="selector" data-topic="months">Months</button>
+        <button class="selector" data-topic="combined">Combined review</button>
+      </div>
+      <p class="muted">Tip: The combined quiz pulls an even mix from every category for a balanced warm-up.</p>
+    </section>
+
+    <section class="quiz-card" aria-live="polite">
+      <div class="meta">
+        <span class="badge" id="topic-label">Pick a topic to begin.</span>
+        <span class="badge" id="progress-label">0 / 0</span>
+      </div>
+      <div class="progress-track" aria-hidden="true">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <div class="question" id="question-text">Awaiting your choice...</div>
+      <div class="options" id="options" role="list"></div>
+      <div class="feedback" id="feedback"></div>
+      <div class="controls">
+        <button class="primary" id="next-btn" disabled>Next question</button>
+        <span class="muted" id="score-text"></span>
+      </div>
+      <div id="summary" class="score-card" style="display:none;"></div>
+    </section>
+  </main>
+
+  <script>
+    const selectors = document.querySelectorAll('.selector');
+    const questionEl = document.getElementById('question-text');
+    const optionsEl = document.getElementById('options');
+    const feedbackEl = document.getElementById('feedback');
+    const nextBtn = document.getElementById('next-btn');
+    const topicLabel = document.getElementById('topic-label');
+    const progressLabel = document.getElementById('progress-label');
+    const progressFill = document.getElementById('progress-fill');
+    const scoreText = document.getElementById('score-text');
+    const summary = document.getElementById('summary');
+
+    let currentTopic = '';
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    const combinedPullCount = 3;
+
+    const questionBanks = {
+      nouns: [
+        {
+          prompt: 'Identify the nominative singular ending for first declension feminine nouns.',
+          answer: '-a',
+          options: ['-a', '-ae', '-am', '-us'],
+          detail: 'First declension feminine nouns like “puella” keep -a in the nominative singular.'
+        },
+        {
+          prompt: 'What is the genitive singular ending for first declension feminine nouns?',
+          answer: '-ae',
+          options: ['-ae', '-arum', '-is', '-us'],
+          detail: 'The -ae ending marks “of the” for first declension singular forms, as in “puellae.”'
+        },
+        {
+          prompt: 'Choose the dative singular ending for first declension feminine nouns.',
+          answer: '-ae',
+          options: ['-am', '-ae', '-is', '-o'],
+          detail: 'First declension datives use -ae to show “to/for,” e.g., “puellae” meaning “to the girl.”'
+        },
+        {
+          prompt: 'Select the accusative singular ending for first declension feminine nouns.',
+          answer: '-am',
+          options: ['-am', '-a', '-um', '-em'],
+          detail: 'Direct objects in the first declension take -am: “puellam” (the girl, object).'
+        },
+        {
+          prompt: 'Pick the ablative singular ending for first declension feminine nouns.',
+          answer: '-ā',
+          options: ['-ā', '-e', '-u', '-is'],
+          detail: 'The long -ā marks separation or means in the first declension: “cum puellā” (with the girl).'
+        },
+        {
+          prompt: 'Identify the nominative plural ending for first declension feminine nouns.',
+          answer: '-ae',
+          options: ['-ae', '-arum', '-as', '-i'],
+          detail: 'First declension plurals switch to -ae in the nominative: “puellae” (girls as subject).'
+        },
+        {
+          prompt: 'What is the genitive plural ending for first declension feminine nouns?',
+          answer: '-arum',
+          options: ['-arum', '-orum', '-um', '-ium'],
+          detail: 'Possession for first declension plurals uses -ārum: “puellārum” (of the girls).'
+        },
+        {
+          prompt: 'Choose the dative plural ending for first declension feminine nouns.',
+          answer: '-is',
+          options: ['-is', '-ibus', '-ae', '-u'],
+          detail: 'The -is ending signals “to/for” in first declension plurals: “puellīs.”'
+        },
+        {
+          prompt: 'Select the accusative plural ending for first declension feminine nouns.',
+          answer: '-as',
+          options: ['-as', '-es', '-os', '-a'],
+          detail: 'First declension accusative plurals end in -ās: “puellās” (girls as direct object).'
+        },
+        {
+          prompt: 'Pick the ablative plural ending for first declension feminine nouns.',
+          answer: '-is',
+          options: ['-is', '-ibus', '-ae', '-e'],
+          detail: 'Ablative plurals in the first declension use -īs: “cum puellīs” (with the girls).'
+        },
+        {
+          prompt: 'Identify the nominative singular ending for second declension masculine nouns.',
+          answer: '-us',
+          options: ['-us', '-er', '-um', '-a'],
+          detail: 'Typical second declension masculine nouns like “servus” end in -us in the nominative singular.'
+        },
+        {
+          prompt: 'What is the genitive singular ending for second declension nouns (masculine or neuter)?',
+          answer: '-i',
+          options: ['-i', '-ae', '-is', '-us'],
+          detail: 'Second declension possession is marked by -ī: “servī” (of the slave) or “bellī” (of the war).'
+        },
+        {
+          prompt: 'Choose the dative singular ending for second declension nouns.',
+          answer: '-o',
+          options: ['-o', '-ui', '-ae', '-i'],
+          detail: 'The -ō ending signals “to/for” in the second declension: “servō,” “bellō.”'
+        },
+        {
+          prompt: 'Select the accusative singular ending for second declension masculine nouns.',
+          answer: '-um',
+          options: ['-um', '-em', '-a', '-am'],
+          detail: 'Masculine second declension direct objects end in -um: “servum.”'
+        },
+        {
+          prompt: 'Pick the ablative singular ending for second declension nouns.',
+          answer: '-o',
+          options: ['-o', '-e', '-u', '-is'],
+          detail: 'Second declension ablatives use -ō, as in “cum servō” or “cum bellō.”'
+        },
+        {
+          prompt: 'Identify the nominative plural ending for second declension masculine nouns.',
+          answer: '-i',
+          options: ['-i', '-ae', '-es', '-a'],
+          detail: 'Masculine plurals shift to -ī: “servī” (slaves) in the nominative.'
+        },
+        {
+          prompt: 'What is the genitive plural ending for second declension nouns?',
+          answer: '-orum',
+          options: ['-orum', '-arum', '-um', '-ium'],
+          detail: '-ōrum marks “of the” in second declension plurals: “servōrum,” “bellōrum.”'
+        },
+        {
+          prompt: 'Choose the dative plural ending for second declension nouns.',
+          answer: '-is',
+          options: ['-is', '-ibus', '-os', '-a'],
+          detail: 'Second declension dative plurals take -īs: “servīs,” “bellīs.”'
+        },
+        {
+          prompt: 'Select the ablative plural ending for second declension nouns.',
+          answer: '-is',
+          options: ['-is', '-ibus', '-e', '-o'],
+          detail: 'Ablative plurals in the second declension also use -īs for both masculine and neuter forms.'
+        },
+        {
+          prompt: 'Select the accusative plural ending for second declension masculine nouns.',
+          answer: '-os',
+          options: ['-os', '-as', '-es', '-a'],
+          detail: 'Masculine accusative plurals end in -ōs: “servōs.”'
+        },
+        {
+          prompt: 'Pick the nominative and accusative plural ending for second declension neuter nouns.',
+          answer: '-a',
+          options: ['-a', '-i', '-es', '-ia'],
+          detail: 'Neuter plurals in the second declension use -a for both nominative and accusative: “bella.”'
+        },
+        {
+          prompt: 'Identify the nominative singular ending for second declension neuter nouns.',
+          answer: '-um',
+          options: ['-um', '-us', '-a', '-e'],
+          detail: 'Common neuter nouns like “bellum” end in -um in the nominative singular, matching the accusative.'
+        },
+        {
+          prompt: 'Choose the accusative singular ending for second declension neuter nouns.',
+          answer: '-um',
+          options: ['-um', '-a', '-em', '-e'],
+          detail: 'Second declension neuter direct objects mirror the nominative and end in -um: “bellum.”'
+        },
+        {
+          prompt: 'What is the vocative singular ending for most second declension masculine nouns ending in -us?',
+          answer: '-e',
+          options: ['-e', '-us', '-i', '-er'],
+          detail: 'Calling directly to a -us noun changes to -e: “serve!” for “servus.”'
+        },
+        {
+          prompt: 'Select the nominative singular ending typical for third declension masculine nouns.',
+          answer: 'varies (stem ending)',
+          options: ['varies (stem ending)', '-us', '-a', '-es'],
+          detail: 'Third declension nominatives are variable—like “rex,” “homo,” or “mater”—so no single set ending appears.'
+        },
+        {
+          prompt: 'Choose the genitive singular ending for third declension nouns (masculine, feminine, or neuter).',
+          answer: '-is',
+          options: ['-is', '-us', '-ae', '-ei'],
+          detail: 'The stable marker for third declension possession is -is: “regis,” “matris,” “corporis.”'
+        },
+        {
+          prompt: 'Pick the dative singular ending for third declension nouns.',
+          answer: '-i',
+          options: ['-i', '-o', '-ui', '-ae'],
+          detail: 'Third declension “to/for” uses -ī: “regī,” “legi,” “corporī.”'
+        },
+        {
+          prompt: 'Identify the accusative singular ending for third declension masculine or feminine nouns.',
+          answer: '-em',
+          options: ['-em', '-um', '-am', '-as'],
+          detail: 'Most third declension m./f. nouns form the direct object with -em: “regem,” “matrem.”'
+        },
+        {
+          prompt: 'Select the ablative singular ending for most third declension nouns.',
+          answer: '-e',
+          options: ['-e', '-u', '-ā', '-is'],
+          detail: 'The common ablative singular ending is -e, as in “cum rege” or “cum corpore,” though i-stems may use -ī.'
+        },
+        {
+          prompt: 'Choose the nominative plural ending for third declension masculine and feminine nouns.',
+          answer: '-es',
+          options: ['-es', '-a', '-ia', '-us'],
+          detail: 'Third declension m./f. plurals use -ēs in the nominative: “regēs,” “matrēs.”'
+        },
+        {
+          prompt: 'Pick the accusative plural ending for third declension masculine and feminine nouns.',
+          answer: '-es',
+          options: ['-es', '-as', '-os', '-a'],
+          detail: 'Direct objects in third declension m./f. plurals end in -ēs: “regēs,” “urbēs.”'
+        },
+        {
+          prompt: 'What is the genitive plural ending commonly used for third declension nouns?',
+          answer: '-um',
+          options: ['-um', '-orum', '-arum', '-erum'],
+          detail: 'The standard genitive plural is -um (sometimes -ium for many i-stems): “regum,” “urbium.”'
+        },
+        {
+          prompt: 'Identify the ablative plural ending for third declension nouns.',
+          answer: '-ibus',
+          options: ['-ibus', '-is', '-us', '-ebus'],
+          detail: 'ablative plurals use -ibus across third declension nouns: “regibus,” “corporibus.”'
+        },
+        {
+          prompt: 'Identify the dative plural ending for third declension nouns.',
+          answer: '-ibus',
+          options: ['-ibus', '-is', '-us', '-ebus'],
+          detail: 'dative plurals use -ibus across third declension nouns: “regibus,” “corporibus.”'
+        },
+        {
+          prompt: 'Select the nominative and accusative singular ending for third declension neuter nouns.',
+          answer: 'same as nominative (varies)',
+          options: ['same as nominative (varies)', '-um', '-em', '-a'],
+          detail: 'Third declension neuters have identical nominative and accusative forms with variable endings, e.g., “corpus.”'
+        },
+        {
+          prompt: 'Pick the nominative and accusative plural ending for third declension neuter nouns.',
+          answer: '-a',
+          options: ['-a', '-ia', '-es', '-ua'],
+          detail: 'Most third declension neuters form plural nom./acc. with -a: “corpora.” (I-stems may use -ia.)'
+        },
+        {
+          prompt: 'Identify the nominative singular ending for fourth declension masculine or feminine nouns.',
+          answer: '-us',
+          options: ['-us', '-u', '-es', '-a'],
+          detail: 'Fourth declension m./f. nouns like “manus” or “fructus” use -us in the nominative singular.'
+        },
+        {
+          prompt: 'What is the genitive singular ending for fourth declension nouns?',
+          answer: '-us',
+          options: ['-us', '-is', '-ei', '-i'],
+          detail: 'Possession in the fourth declension stays -us: “manūs,” “fructūs.”'
+        },
+        {
+          prompt: 'Choose the dative singular ending for fourth declension nouns.',
+          answer: '-ui',
+          options: ['-ui', '-u', '-o', '-ae'],
+          detail: 'Fourth declension “to/for” often uses -uī: “manuī.” Some nouns show -ū depending on stem.'
+        },
+        {
+          prompt: 'Select the accusative singular ending for fourth declension masculine or feminine nouns.',
+          answer: '-um',
+          options: ['-um', '-em', '-as', '-es'],
+          detail: 'Direct objects in fourth declension m./f. take -um: “manum,” “fructum.”'
+        },
+        {
+          prompt: 'Pick the ablative singular ending for fourth declension nouns.',
+          answer: '-u',
+          options: ['-u', '-o', '-e', '-is'],
+          detail: 'The ablative singular is characteristically -ū: “manū,” “fructū.”'
+        },
+        {
+          prompt: 'Identify the nominative plural ending for fourth declension masculine and feminine nouns.',
+          answer: '-us',
+          options: ['-us', '-ua', '-es', '-a'],
+          detail: 'Fourth declension m./f. plurals keep -ūs: “manūs,” “fructūs.”'
+        },
+        {
+          prompt: 'Choose the accusative plural ending for fourth declension masculine and feminine nouns.',
+          answer: '-us',
+          options: ['-us', '-ua', '-es', '-a'],
+          detail: 'Accusative plurals for m./f. fourth declension also use -ūs: “manūs.”'
+        },
+        {
+          prompt: 'Pick the genitive plural ending for fourth declension nouns.',
+          answer: '-uum',
+          options: ['-uum', '-orum', '-um', '-uum/-ium'],
+          detail: 'Fourth declension genitive plurals take -uum: “manuum,” “fructuum.”'
+        },
+        {
+          prompt: 'Select the ablative plural ending for fourth declension nouns.',
+          answer: '-ibus',
+          options: ['-ibus', '-is', '-ebus', '-bus'],
+          detail: 'ablative plurals use -ibus: “manibus,” “fructibus.”'
+        },
+        {
+          prompt: 'Select the dative plural ending for fourth declension nouns.',
+          answer: '-ibus',
+          options: ['-ibus', '-is', '-ebus', '-bus'],
+          detail: 'dative plurals use -ibus: “manibus,” “fructibus.”'
+        },
+        {
+          prompt: 'Identify the nominative singular ending for fourth declension neuter nouns.',
+          answer: '-u',
+          options: ['-u', '-us', '-um', '-a'],
+          detail: 'Neuter fourth declension nouns like “cornu” use -ū in the nominative singular (matching accusative and vocative).'
+        },
+        {
+          prompt: 'Select the accusative singular ending for fourth declension neuter nouns.',
+          answer: '-u',
+          options: ['-u', '-um', '-a', '-us'],
+          detail: 'Fourth declension neuter accusative singular matches the nominative at -ū: “cornū.”'
+        },
+        {
+          prompt: 'What is the nominative and accusative plural ending for fourth declension neuter nouns?',
+          answer: '-ua',
+          options: ['-ua', '-a', '-us', '-ia'],
+          detail: 'Fourth declension neuter plurals form nom./acc. in -ua: “cornua.”'
+        },
+        {
+          prompt: 'Choose the genitive singular ending for fifth declension nouns.',
+          answer: '-ei',
+          options: ['-ei', '-is', '-i', '-ae'],
+          detail: 'Fifth declension nouns like “dies” and “res” form the genitive with -eī: “diēī,” “reī.”'
+        },
+        {
+          prompt: 'Identify the nominative singular ending for fifth declension nouns.',
+          answer: '-es',
+          options: ['-es', '-us', '-a', '-um'],
+          detail: 'Most fifth declension nouns have -ēs in the nominative singular: “res,” “dies.”'
+        },
+        {
+          prompt: 'Select the accusative singular ending for fifth declension nouns.',
+          answer: '-em',
+          options: ['-em', '-um', '-am', '-as'],
+          detail: 'Fifth declension accusative singular ends in -em: “rem,” “diem.”'
+        },
+        {
+          prompt: 'Pick the ablative singular ending for fifth declension nouns.',
+          answer: '-e',
+          options: ['-e', '-u', '-ā', '-is'],
+          detail: 'The ablative singular uses -ē: “re.” “die” uses -ē or sometimes -i in poetry.'
+        },
+        {
+          prompt: 'Choose the nominative and vocative plural ending for fifth declension nouns.',
+          answer: '-es',
+          options: ['-es', '-a', '-us', '-ae'],
+          detail: 'Plural subjects in the fifth declension use -ēs: “rēs,” “diēs.”'
+        },
+        {
+          prompt: 'Select the genitive plural ending for fifth declension nouns.',
+          answer: '-erum',
+          options: ['-erum', '-arum', '-orum', '-um'],
+          detail: 'Fifth declension possession in the plural is -ērum: “rērum,” “diērum.”'
+        },
+        {
+          prompt: 'Pick the ablative plural ending for fifth declension nouns.',
+          answer: '-ebus',
+          options: ['-ebus', '-ibus', '-is', '-bus'],
+          detail: 'The ending -ēbus marks the ablative plurals: “rēbus.” “diēbus” is classical for “dies.”'
+        }
+        ,
+        {
+          prompt: 'Pick the dative plural ending for fifth declension nouns.',
+          answer: '-ebus',
+          options: ['-ebus', '-ibus', '-is', '-bus'],
+          detail: 'The ending -ēbus marks the dative plurals: “rēbus.” “diēbus” is classical for “dies.”'
+        }
+      ],
+      verbs: [
+        {
+          prompt: 'What is the present active infinitive ending for first conjugation verbs?',
+          answer: '-are',
+          options: ['-are', '-ēre', '-ere', '-ire'],
+          detail: 'First conjugation stems in -a take the long infinitive ending -āre, as seen in "amāre" (to love), "portāre" (to praise), "laudāre" (to carry).'
+        },
+        {
+          prompt: 'Choose the present active infinitive ending for second conjugation verbs.',
+          answer: '-ēre',
+          options: ['-are', '-ēre', '-ere', '-ire'],
+          detail: 'Second conjugation verbs lengthen the stem vowel to -ē and add -re, producing infinitives like "vidēre" (to see), "timēre" (to fear), "habēre" (to have).'
+        },
+        {
+          prompt: 'Select the present active infinitive ending for third conjugation verbs.',
+          answer: '-ere',
+          options: ['-ire', '-ēre', '-ere', '-ari'],
+          detail: 'Third conjugation verbs keep a short -e before -re, as in "regere" (to rule), "dīcere" (to say,speak), "mittere" (to send).'
+        },
+        {
+          prompt: 'Pick the present active infinitive ending for fourth conjugation verbs.',
+          answer: '-ire',
+          options: ['-iri', '-are', '-ire', '-ari'],
+          detail: 'Fourth conjugation verbs use the long -ī plus -re, giving infinitives such as "audīre" (to hear), "venīre" (to come), "dormīre" (to sleep).'
+        },
+        {
+          prompt: 'What is the singular active imperative ending for first conjugation verbs?',
+          answer: '-a',
+          options: ['-a', '-ate', '-e', '-ite'],
+          detail: 'First conjugation imperatives drop -re from the infinitive, leaving -ā: "amā!" (Love!)'
+        },
+        {
+          prompt: 'Choose the plural active imperative ending for first conjugation verbs.',
+          answer: '-ate',
+          options: ['-ate', '-ete', '-ite', '-iri'],
+          detail: 'Adding -te to the present stem makes the plural: "amāte!" (Love!)'
+        },
+        {
+          prompt: 'Select the singular active imperative ending for second conjugation verbs.',
+          answer: '-e',
+          options: ['-e', '-ete', '-i', '-ite'],
+          detail: 'Second conjugation imperatives keep a long -ē: "vidē!" (See!)'
+        },
+        {
+          prompt: 'Pick the plural active imperative ending for second conjugation verbs.',
+          answer: '-ete',
+          options: ['-ete', '-ate', '-ite', '-e'],
+          detail: 'Adding -te to the long -ē stem yields "vidēte!" (See!)'
+        },
+        {
+          prompt: 'Identify the singular active imperative ending for third conjugation verbs.',
+          answer: '-e',
+          options: ['-e', '-ite', '-i', '-ere'],
+          detail: 'Third conjugation imperatives shorten to -e on the stem: "rege!" (Govern!)'
+        },
+        {
+          prompt: 'Choose the plural active imperative ending for third conjugation verbs.',
+          answer: '-ite',
+          options: ['-ite', '-ete', '-ate', '-iri'],
+          detail: 'The plural adds -ite, giving commands like "regite!" (Govern!)'
+        },
+        {
+          prompt: 'Select the singular active imperative ending for fourth conjugation verbs.',
+          answer: '-i',
+          options: ['-i', '-e', '-ire', '-ite'],
+          detail: 'Fourth conjugation imperatives end in -ī: "audī!" (Listen!)'
+        },
+        {
+          prompt: 'Pick the plural active imperative ending for fourth conjugation verbs.',
+          answer: '-ite',
+          options: ['-ite', '-ete', '-ate', '-e'],
+          detail: 'Adding -te to the -ī stem yields "audīte!" (Listen!)'
+        },
+        {
+          prompt: 'What is the present active indicative ending for 1st person singular?',
+          answer: '-o / -m',
+          options: ['-o / -m', '-s', '-t', '-mus'],
+          detail: 'The 1st person singular uses -ō as in "amō" (I love)   ** for the verb esse, 1st person singular uses -m as in "sum" (I am) **'
+        },
+        {
+          prompt: 'Name the present active indicative ending for 2nd person singular.',
+          answer: '-s',
+          options: ['-s', '-t', '-tis', '-mus'],
+          detail: 'Active verbs take -s for the 2nd person singular: "amās" (you love).'
+        },
+        {
+          prompt: 'Select the present active indicative ending for 3rd person singular.',
+          answer: '-t',
+          options: ['-t', '-s', '-mus', '-nt'],
+          detail: 'The 3rd person singular ends in -t: "amat" (he/she loves).'
+        },
+        {
+          prompt: 'Pick the present active indicative ending for 1st person plural.',
+          answer: '-mus',
+          options: ['-mus', '-tis', '-nt', '-mur'],
+          detail: 'Adding -mus marks 1st person plural: "amāmus" (we love).'
+        },
+        {
+          prompt: 'Choose the present active indicative ending for 2nd person plural.',
+          answer: '-tis',
+          options: ['-tis', '-mus', '-nt', '-mini'],
+          detail: 'The -tis ending forms 2nd person plural: "amātis" (you all love).'
+        },
+        {
+          prompt: 'Select the present active indicative ending for 3rd person plural.',
+          answer: '-nt',
+          options: ['-mus', '-nt', '-tis', '-bam'],
+          detail: 'Third person plural verbs end in -nt: "amant" (they love).'
+        },
+        {
+          prompt: 'What is the present passive indicative ending for 1st person singular?',
+          answer: '-or',
+          options: ['-or', '-ris', '-tur', '-mur'],
+          detail: 'Passive 1st person singular takes -or: "amor" (I am loved).'
+        },
+        {
+          prompt: 'Choose the present passive indicative ending for 2nd person singular.',
+          answer: '-ris / -re',
+          options: ['-ris / -re', '-tur', '-mur', '-mini'],
+          detail: 'Second person passive can appear as -ris or contracted -re: "amāris" or "amāre" (you are loved).'
+        },
+        {
+          prompt: 'Select the present passive indicative ending for 3rd person singular.',
+          answer: '-tur',
+          options: ['-tur', '-ris', '-mur', '-ntur'],
+          detail: 'The 3rd person singular passive ends in -tur: "amātur" (he/she is loved).'
+        },
+        {
+          prompt: 'Pick the present passive indicative ending for 1st person plural.',
+          answer: '-mur',
+          options: ['-mur', '-mini', '-ntur', '-mus'],
+          detail: 'Adding -mur creates the 1st person plural passive: "amāmur" (we are loved).'
+        },
+        {
+          prompt: 'Identify the present passive indicative ending for 2nd person plural.',
+          answer: '-mini',
+          options: ['-mini', '-tis', '-mur', '-ntur'],
+          detail: 'The -mini ending marks 2nd person plural passive: "amāmini" (you all are loved).'
+        },
+        {
+          prompt: 'Choose the present passive indicative ending for 3rd person plural.',
+          answer: '-ntur',
+          options: ['-tur', '-mur', '-ntur', '-or'],
+          detail: 'Third person plural passive forms end in -ntur: "amantur" (they are loved).'
+        }
+      ],
+      days: [
+        { prompt: 'Which Latin name matches to Monday?', answer: 'dies Lunae — day of the Moon', options: ['dies Lunae — day of the Moon', 'dies Martis — day of Mars', 'dies Saturni — day of Saturn', 'dies Mercurii — day of Mercury'], detail: 'Latin “dies Lunae” literally means “day of the Moon,” paralleling Old English “Mōnandæg,” also built on the Moon goddess Luna.' },
+        { prompt: 'Which English day pairs with the Latin phrase “dies Lunae”?', answer: 'Monday — day of the Moon', options: ['Monday — day of the Moon', 'Tuesday — day of Mars', 'Wednesday — day of Mercury', 'Sunday — day of the Sun'], detail: 'Both English “Monday” and Latin “dies Lunae” point to the Moon, reflecting the Roman goddess Luna and the Germanic Moon in their names.' },
+        { prompt: 'Tuesday comes from Tiw, meaning "Tiw\'s Day". Choose the Latin day.', answer: 'dies Martis — day of Mars', options: ['dies Saturni — day of Saturn', 'dies Martis — day of Mars', 'dies Veneris — day of Venus', 'dies Lunae — day of the Moon'], detail: 'Old English “Tiwesdæg” honors the war god Tiw/Týr, equated with Roman Mars, which is why Latin uses “dies Martis.”' },
+        { prompt: 'Which English day belongs with “dies Martis” ?', answer: 'Tuesday — day of Mars', options: ['Tuesday — day of Mars', 'Thursday — day of Jupiter', 'Friday — day of Venus', 'Saturday — day of Saturn'], detail: 'Tuesday traces to Tiw/Týr, the Germanic war god matched to Roman Mars, so the Latin calendar calls it “dies Martis.”' },
+        { prompt: 'Wednesday is Woden\'s day, connected to Norse God Odin. Pick the Latin match.', answer: 'dies Mercurii — day of Mercury', options: ['dies Mercurii — day of Mercury', 'dies Iovis — day of Jupiter', 'dies Veneris — day of Venus', 'dies Solis — day of the Sun'], detail: '“Wednesday” comes from Old English “Wōdnesdæg.” Woden (Odin) was likened to Mercury, giving the Latin name “dies Mercurii.”' },
+        { prompt: 'Which English weekday corresponds to “dies Mercurii”?', answer: 'Wednesday — day of Mercury', options: ['Wednesday — day of Mercury', 'Monday — day of the Moon', 'Thursday — day of Jupiter', 'Sunday — day of the Sun'], detail: 'Both English “Wednesday” (Woden\'s day) and Latin “dies Mercurii” reflect Mercury, since Roman writers associated Woden/Odin with Mercury.' },
+        { prompt: 'Thursday honors Norse God Thor. Select the Latin name.', answer: 'dies Iovis — day of Jupiter', options: ['dies Iovis — day of Jupiter', 'dies Lunae — day of the Moon', 'dies Saturni — day of Saturn', 'dies Martis — day of Mars'], detail: '“Thursday” comes from Thor\'s day. Thor, a thunder god, aligns with Jupiter, which is why Latin marks it as “dies Iovis” (day of Jupiter).' },
+        { prompt: 'Which English day aligns with “dies Iovis” ?', answer: 'Thursday — day of Jupiter', options: ['Thursday — day of Jupiter', 'Tuesday — day of Mars', 'Friday — day of Venus', 'Sunday — day of the Sun'], detail: 'Latin “dies Iovis” uses Jupiter\'s name; English “Thursday” keeps Thor, a thunder god the Romans paired with Jupiter.' },
+        { prompt: 'Friday is Norse Goddess Freya\'s day. Choose the Latin equivalent.', answer: 'dies Veneris — day of Venus', options: ['dies Solis — day of the Sun', 'dies Veneris — day of Venus', 'dies Martis — day of Mars', 'dies Mercurii — day of Mercury'], detail: 'English “Friday” comes from Frigg/Freya, a love goddess linked to Venus, so Latin calls it “dies Veneris,” the day of Venus.' },
+        { prompt: 'Which English day goes with “dies Veneris,” the day of Venus?', answer: 'Friday — day of Venus', options: ['Friday — day of Venus', 'Wednesday — day of Mercury', 'Saturday — day of Saturn', 'Monday — day of the Moon'], detail: 'Both “Friday” (from Frigg/Freya) and “dies Veneris” center on a goddess of love, Venus, showing the shared theme across languages.' },
+        { prompt: 'Saturday keeps Saturn in both English and Latin. Pick the Latin day.', answer: 'dies Saturni — day of Saturn', options: ['dies Saturni — day of Saturn', 'dies Solis — day of the Sun', 'dies Iovis — day of Jupiter', 'dies Lunae — day of the Moon'], detail: 'Unlike other weekdays, English “Saturday” preserves the Roman god Saturn directly, matching Latin “dies Saturni.”' },
+        { prompt: 'Which English weekday matches “dies Saturni” ', answer: 'Saturday — day of Saturn', options: ['Saturday — day of Saturn', 'Tuesday — day of Mars', 'Thursday — day of Jupiter', 'Sunday — day of the Sun'], detail: 'Both the English and Latin names keep Saturn, showing how Saturday retained the Roman god instead of a Germanic counterpart.' },
+        { prompt: 'Sunday is the Sun\'s day. Choose the Latin partner.', answer: 'dies Solis', options: ['dies Solis — day of the Sun', 'dies Lunae — day of the Moon', 'dies Mercurii — day of Mercury', 'dies Martis — day of Mars'], detail: 'Latin “dies Solis” and English “Sunday” both come from the Sun, reflecting shared ancient solar worship and calendar naming.' },
+        { prompt: 'Which English day pairs with “dies Solis” ?', answer: 'Sunday — day of the Sun', options: ['Sunday — day of the Sun', 'Monday — day of the Moon', 'Friday — day of Venus', 'Thursday — day of Jupiter'], detail: '“Sunday” (Old English “Sunnandæg”) and Latin “dies Solis” are both built on Sol, the Sun, highlighting the celestial origin of the name.' },
+        { prompt: 'Name the Roman god behind “dies Martis.”', answer: 'Mars', options: ['Mars', 'Mercury', 'Venus', 'Jupiter'], detail: '“Dies Martis” is the day of Mars, the Roman war god; the Germanic calendar matched him with Tiw/Týr for Tuesday.' },
+        { prompt: 'Which deity gives us “dies Mercurii”?', answer: 'Mercury', options: ['Mercury', 'Mars', 'Saturn', 'Venus'], detail: '“Dies Mercurii” honors Mercury; Woden/Odin was paired with Mercury by the Romans, explaining Wednesday\'s link.' },
+        { prompt: 'Identify the god at the root of “dies Iovis.”', answer: 'Jupiter', options: ['Jupiter', 'Mars', 'Mercury', 'Saturn'], detail: '“Dies Iovis” uses the genitive of Iuppiter (Jove), marking the day dedicated to Jupiter and mirrored by Thor\'s Thursday.' },
+        { prompt: 'Who is honored in “dies Veneris”?', answer: 'Venus', options: ['Venus', 'Mercury', 'Jupiter', 'Saturn'], detail: '“Dies Veneris” is Venus\'s day; English Friday parallels her through the love goddess Frigg/Freya.' },
+        { prompt: 'Which Roman deity is source of “dies Saturni”?', answer: 'Saturn', options: ['Saturn', 'Mars', 'Jupiter', 'Venus'], detail: '“Dies Saturni” belongs to Saturn, and English Saturday uniquely keeps his name intact without swapping to a Germanic god.' },
+        { prompt: '“Dies Solis” points to which celestial body?', answer: 'The Sun', options: ['The Sun', 'The Moon', 'Mars', 'Venus'], detail: '“Solis” is the genitive of Sol, the Sun, so “dies Solis” literally means “day of the Sun.”' },
+        { prompt: '“Dies Lunae” points to which celestial body?', answer: 'The Moon', options: ['The Moon', 'The Sun', 'Mercury', 'Saturn'], detail: '“Lunae” is the genitive of Luna, the Moon, making “dies Lunae” the Moon\'s day and matching English Monday.' }
+      ],
+      months: [
+        { prompt: 'January is named for the two-faced guardian of doorways. Pick the Latin source.', answer: 'Ianuarius — from Janus', options: ['Ianuarius — from Janus', 'Martius — from Mars', 'Iulius — from Julius Caesar', 'Maius — from Maia'] },
+        { prompt: 'February comes from an ancient festival of cleansing. Choose the Latin root.', answer: 'Februarius — from Februa (purification)', options: ['Februarius — from Februa (purification)', 'Aprilis — from aperire (to open)', 'Iunius — from Juno', 'Sextilis — renamed Augustus'] },
+        { prompt: 'March honors the Roman god of war. Select the Latin name.', answer: 'Martius — from Mars', options: ['Martius — from Mars', 'Maius — from Maia', 'Ianuarius — from Janus', 'Aprilis — from aperire (to open)'] },
+        { prompt: 'April may mean “to open” like spring buds. Pick the Latin label.', answer: 'Aprilis — from aperire (to open)', options: ['Aprilis — from aperire (to open)', 'Maius — from Maia', 'Iunius — from Juno', 'Septem — seven'] },
+        { prompt: 'May is named for a nurturing goddess. Choose the Latin source.', answer: 'Maius — from Maia', options: ['Maius — from Maia', 'Iulius — from Julius Caesar', 'Octo — eight', 'Martius — from Mars'] },
+        { prompt: 'June honors the queen of the gods. Select the Latin connection.', answer: 'Iunius — from Juno', options: ['Iunius — from Juno', 'Sextilis — renamed Augustus', 'September — seven', 'Februarius — from Februa'] },
+        { prompt: 'July was renamed for a famous Roman leader. Pick the Latin name.', answer: 'Iulius — from Julius Caesar', options: ['Iulius — from Julius Caesar', 'Sextilis — renamed Augustus', 'Maius — from Maia', 'Martius — from Mars'] },
+        { prompt: 'August honors the first Roman emperor. Choose the Latin label.', answer: 'Augustus — for Augustus Caesar (formerly Sextilis)', options: ['Augustus — for Augustus Caesar (formerly Sextilis)', 'Septem — seven', 'Aprilis — from aperire (to open)', 'Ianuarius — from Janus'] },
+        { prompt: 'September keeps a numeric root meaning “seven.” Pick the Latin form.', answer: 'September — from septem (seven)', options: ['September — from septem (seven)', 'Octobris — from octo (eight)', 'Nonus — from nine', 'Decem — from ten'] },
+        { prompt: 'October follows with a root meaning “eight.” Select the Latin origin.', answer: 'October — from octo (eight)', options: ['October — from octo (eight)', 'November — from novem (nine)', 'December — from decem (ten)', 'Augustus — for Augustus Caesar'] },
+        { prompt: 'November reflects the number nine. Choose the Latin base.', answer: 'November — from novem (nine)', options: ['November — from novem (nine)', 'December — from decem (ten)', 'September — from septem (seven)', 'Martius — from Mars'] },
+        { prompt: 'December ends the set with a root meaning “ten.” Pick the Latin form.', answer: 'December — from decem (ten)', options: ['December — from decem (ten)', 'October — from octo (eight)', 'September — from septem (seven)', 'Augustus — for Augustus Caesar'] }
+      ]
+    };
+
+    function shuffle(array) {
+      return array
+        .map(item => ({ item, sort: Math.random() }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(({ item }) => item);
+    }
+
+    function getQuestions(topic) {
+      if (topic === 'combined') {
+        const combined = [];
+        ['nouns', 'verbs', 'days', 'months'].forEach(key => {
+          const pool = shuffle([...questionBanks[key]]);
+          combined.push(...pool.slice(0, combinedPullCount));
+        });
+        return shuffle(combined);
+      }
+      return shuffle([...questionBanks[topic]]);
+    }
+
+    function setActiveTopic(topic) {
+      selectors.forEach(btn => btn.classList.toggle('active', btn.dataset.topic === topic));
+      topicLabel.textContent = topic
+        ? `${topic.charAt(0).toUpperCase() + topic.slice(1)} quiz`
+        : 'Pick a topic to begin.';
+    }
+
+    function startQuiz(topic) {
+      currentTopic = topic;
+      currentQuestions = getQuestions(topic);
+      currentIndex = 0;
+      score = 0;
+      setActiveTopic(topic);
+      summary.style.display = 'none';
+      nextBtn.disabled = true;
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const total = currentQuestions.length;
+      progressLabel.textContent = total ? `${currentIndex + 1} / ${total}` : '0 / 0';
+      progressFill.style.width = total ? `${((currentIndex) / total) * 100}%` : '0%';
+      scoreText.textContent = total ? `Score: ${score} / ${total}` : '';
+
+      if (!total) {
+        questionEl.textContent = 'Awaiting your choice...';
+        optionsEl.innerHTML = '';
+        feedbackEl.textContent = '';
+        return;
+      }
+
+      const current = currentQuestions[currentIndex];
+      questionEl.textContent = current.prompt;
+      feedbackEl.textContent = '';
+      nextBtn.disabled = true;
+      optionsEl.innerHTML = '';
+
+      shuffle(current.options).forEach(option => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = option;
+        btn.onclick = () => handleAnswer(btn, option === current.answer, current);
+        optionsEl.appendChild(btn);
+      });
+    }
+
+    function handleAnswer(button, isCorrect, currentQuestion) {
+      const optionButtons = optionsEl.querySelectorAll('button');
+      optionButtons.forEach(btn => {
+        btn.classList.add('disabled');
+        if (btn.textContent === currentQuestion.answer) {
+          btn.classList.add('correct');
+        }
+      });
+      if (!isCorrect) {
+        button.classList.add('incorrect');
+        feedbackEl.textContent = `Not quite. The best choice is ${currentQuestion.answer}.`;
+      } else {
+        const detail = currentQuestion.detail;
+        feedbackEl.innerHTML = detail
+          ? `Well done!<div class="detail">${detail}</div>`
+          : 'Well done!';
+        score++;
+      }
+      const total = currentQuestions.length;
+      scoreText.textContent = `Score: ${score} / ${total}`;
+      progressFill.style.width = `${((currentIndex + 1) / total) * 100}%`;
+      nextBtn.disabled = false;
+    }
+
+    function showSummary() {
+      summary.style.display = 'inline-flex';
+      summary.textContent = `Sunrise complete! You scored ${score} out of ${currentQuestions.length}. Choose another path to keep practicing.`;
+      questionEl.textContent = 'Ready for another climb? Pick a topic above to restart.';
+      optionsEl.innerHTML = '';
+      feedbackEl.textContent = '';
+      nextBtn.disabled = true;
+      progressLabel.textContent = `${currentQuestions.length} / ${currentQuestions.length}`;
+    }
+
+    nextBtn.addEventListener('click', () => {
+      if (!currentQuestions.length) return;
+      currentIndex++;
+      if (currentIndex >= currentQuestions.length) {
+        showSummary();
+      } else {
+        renderQuestion();
+      }
+    });
+
+    selectors.forEach(btn => {
+      btn.addEventListener('click', () => startQuiz(btn.dataset.topic));
+    });
+  </script>
+</body>
+</html>
