@@ -814,13 +814,14 @@
         { prompt: 'Which English day goes with “dies Veneris”?', answer: 'Friday', options: ['Friday', 'Wednesday', 'Saturday', 'Monday'], detail: 'Both center on a goddess of love (Venus/Freya).' },
         { prompt: 'Saturday keeps Saturn in both English and Latin. Pick the Latin day.', answer: 'dies Sāturnī', options: ['dies Sāturnī', 'dies Sōlis', 'dies Iovis', 'dies Lūnae'], detail: 'English “Saturday” preserves the Roman god Saturn directly.' },
         { prompt: 'Which English weekday matches “dies Sāturnī”?', answer: 'Saturday', options: ['Saturday', 'Tuesday', 'Thursday', 'Sunday'], detail: 'Both the English and Latin names honor Saturn.' },
-        { prompt: 'Sunday is the Sun\'s day. Choose the Latin partner.', answer: 'dies Sōlis', options: ['dies Sōlis', 'dies Lūnae', 'dies Mercuriī', 'dies Martis'], detail: 'Latin “dies Sōlis” means “day of the Sun.”' },
-        { prompt: 'Which English day pairs with “dies Sōlis” ?', answer: 'Sunday', options: ['Sunday', 'Monday', 'Friday', 'Thursday'], detail: '“Sunday” and “dies Sōlis” are both built on the Sun.' },
+        { prompt: 'Sunday is the Sun\'s day. Choose the Latin partners.', answer: 'dies Sōlis AND dies Dominicus', options: ['dies Sōlis AND dies Dominicus', 'dies Lūnae', 'dies Mercuriī', 'dies Martis'], detail: 'Latin “dies Sōlis” means “day of the Sun”, and Latin “dies Dominicus” means “day of the Lord”' },
+        { prompt: 'Which English day pairs with “dies Sōlis AND dies Dominicus” ?', answer: 'Sunday', options: ['Sunday', 'Monday', 'Friday', 'Thursday'], detail: '“Sunday”, “dies Sōlis”, "dies Dominicus" are all in agreement.' },
         { prompt: 'Name the Roman god behind “dies Martis.”', answer: 'Mars', options: ['Mars', 'Mercury', 'Venus', 'Jupiter'], detail: '“Dies Martis” is the day of Mars, the Roman war god.' },
         { prompt: 'Which deity gives us “dies Mercuriī”?', answer: 'Mercury', options: ['Mercury', 'Mars', 'Saturn', 'Venus'], detail: '“Dies Mercuriī” honors Mercury.' },
         { prompt: 'Identify the god at the root of “dies Iovis.”', answer: 'Jupiter', options: ['Jupiter', 'Mars', 'Mercury', 'Saturn'], detail: '“Dies Iovis” uses the genitive of Iuppiter (Jove).' },
         { prompt: 'Who is honored in “dies Veneris”?', answer: 'Venus', options: ['Venus', 'Mercury', 'Jupiter', 'Saturn'], detail: '“Dies Veneris” is Venus\'s day.' },
-        { prompt: 'Which Roman deity is source of “dies Sāturnī”?', answer: 'Saturn', options: ['Saturn', 'Mars', 'Jupiter', 'Venus'], detail: '“Dies Sāturnī” belongs to Saturn.' }
+        { prompt: 'Which Roman deity is source of “dies Sāturnī”?', answer: 'Saturn', options: ['Saturn', 'Mars', 'Jupiter', 'Venus'], detail: '“Dies Sāturnī” belongs to Saturn.' },
+        { prompt: 'Saturday has a second connection in Latin, what is it?', answer: 'dies Sabbati', options: ['dies veneris', 'dies dominicus', 'dies Sabbati', 'dies Lūnae'], detail: '“Dies Sabbati relates to Sabbath day of Rest.' }
       ],
       months: [
         { prompt: 'January is named for the two-faced guardian of doorways. Pick the Latin source.', answer: 'Iānuārius — from Jānus', options: ['Iānuārius — from Jānus', 'Mārtius — from Mars', 'Iūlius — from Julius Caesar', 'Māius — from Māia'] },
@@ -854,7 +855,8 @@
         });
         return shuffle(combined);
       }
-      return shuffle([...questionBanks[topic]]);
+      //return shuffle([...questionBanks[topic]]);
+      return [...questionBanks[topic]];
     }
 
     function setActiveTopic(topic) {
