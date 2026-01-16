@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkyLift Dynamics - Energy Storage Lab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom Animations & Utilities */
+        @keyframes flow {
+            0% { stroke-dashoffset: 20; }
+            100% { stroke-dashoffset: 0; }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px #10b981, inset 0 0 5px #10b981; }
+            50% { box-shadow: 0 0 20px #10b981, inset 0 0 10px #10b981; }
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.90);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+        .no-transition {
+            transition: none !important;
+        }
+        /* Custom range slider styling */
+        input[type=range] {
+            -webkit-appearance: none; 
+            background: transparent; 
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: currentColor;
+            margin-top: -6px;
+            cursor: pointer;
+            box-shadow: 0 0 10px currentColor;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #334155;
+            border-radius: 2px;
+        }
+        /* Battery Cell styling */
+        .battery-cell {
+            background: #0f172a; /* Dark slate for empty */
+            border: 1px solid #1e293b;
+            position: relative;
+            transition: all 0.1s ease;
+        }
+        .battery-cell.filled {
+            background: linear-gradient(180deg, #064e3b 0%, #065f46 100%);
+            border-color: #059669;
+            box-shadow: inset 0 0 2px rgba(16, 185, 129, 0.3);
+        }
+        .battery-cell.active {
+            background: linear-gradient(180deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 0 8px #10b981;
+        }
+        .hazard-stripe {
+            background: repeating-linear-gradient(
+                45deg,
+                #000,
+                #000 10px,
+                #facc15 10px,
+                #facc15 20px
+            );
+        }
+        /* Window Lights */
+        .window {
+            background-color: rgba(2, 6, 23, 0.9); 
+            border: 1px solid rgba(51, 65, 85, 0.3);
+        }
+        .window.lit {
+            background-color: #fef08a;
+            box-shadow: 0 0 8px rgba(253, 224, 71, 0.4);
+            border-color: rgba(253, 224, 71, 0.6);
+        }
+        /* Custom Input Styling */
+        .custom-input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid #475569;
+            color: white;
+            font-family: monospace;
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            width: 100%;
+            outline: none;
+        }
+        .custom-input:focus {
+            border-color: #10b981;
+            box-shadow: 0 0 0 1px #10b981;
+        }
+    </style>
+</head>
+<body class="bg-[#020617] text-slate-100 font-sans h-screen w-screen overflow-hidden flex flex-col selection:bg-emerald-500/30">
+
+    <!-- Navbar -->
+    <header class="h-14 bg-slate-900/80 backdrop-blur border-b border-slate-800 flex items-center px-6 justify-between z-30 shadow-lg flex-shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded flex items-center justify-center shadow-lg shadow-emerald-900/20">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </div>
+            <h1 class="font-bold text-lg tracking-tight text-slate-100">
+                SkyLift <span class="text-emerald-400 font-light">Storage</span>
+            </h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <div id="status-badge" class="px-3 py-1 rounded-full text-xs font-bold tracking-wider flex items-center gap-2 border bg-slate-800 border-slate-700 text-slate-400">
+                <span id="status-dot" class="hidden w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span id="status-text">IDLE</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+        
+        <!-- Sidebar Controls -->
+        <aside class="w-full lg:w-96 bg-slate-900/95 border-r border-slate-800 flex flex-col z-20 shadow-2xl overflow-y-auto glass-panel">
+            <div class="p-6 space-y-8">
+                
+                <!-- Battery Section -->
+                <div>
+                    <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        Energy Storage (Battery)
+                    </h2>
+                    <div class="bg-slate-800/40 rounded-lg p-4 border border-slate-700/50 space-y-4">
+                        <div class="flex justify-between items-end">
+                            <label class="text-sm text-slate-300 font-medium">Bank Capacity</label>
+                            <span id="battery-display" class="text-xs text-emerald-400 font-mono bg-emerald-900/20 px-2 py-1 rounded border border-emerald-500/30">
+                                5,000 kJ
+                            </span>
+                        </div>
+                        <input id="input-battery" type="range" min="500" max="20000" step="500" value="5000" class="w-full text-emerald-500">
+                        <div class="flex justify-between text-[10px] text-slate-500 font-mono">
+                            <span>500 kJ</span>
+                            <span>Medium</span>
+                            <span>20,000 kJ</span>
+                        </div>
+                        
+                        <!-- Mini Battery Status -->
+                        <div class="mt-2 p-2 bg-black/30 rounded flex items-center gap-3">
+                             <div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                                 <div id="sidebar-battery-bar" class="h-full bg-emerald-500 w-full transition-all duration-300"></div>
+                             </div>
+                             <span id="sidebar-battery-pct" class="text-xs font-mono text-emerald-500">100%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Motor Section -->
+                <div>
+                    <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        Motor Demand
+                    </h2>
+                    <div class="bg-slate-800/40 rounded-lg p-4 border border-slate-700/50 space-y-4">
+                        <label class="text-sm text-slate-300 font-medium mb-2 block">Motor Unit</label>
+                        <div id="motor-list" class="grid grid-cols-1 gap-2">
+                            <!-- Motors injected by JS -->
+                        </div>
+
+                        <!-- Payload -->
+                        <div class="pt-4 border-t border-slate-700/50">
+                            <div class="flex justify-between items-end mb-3">
+                                <label class="text-sm text-slate-300 font-medium flex gap-2 items-center">
+                                    Payload Mass
+                                </label>
+                                <span id="payload-display" class="text-xs text-slate-300 font-mono bg-slate-700 px-2 py-1 rounded">
+                                    1,000 kg
+                                </span>
+                            </div>
+                            <input id="input-payload" type="range" min="0" max="5000" step="100" value="1000" class="w-full text-indigo-500">
+                            
+                            <div class="mt-3 grid grid-cols-2 gap-2">
+                                <div class="flex justify-between items-center bg-slate-800/50 p-2 rounded border border-slate-700">
+                                    <span class="text-xs text-slate-400 font-medium">Total Mass</span>
+                                    <span id="total-mass-display" class="text-sm font-mono text-slate-200">2000kg</span>
+                                </div>
+                                <div class="flex justify-between items-center bg-slate-800/50 p-2 rounded border border-slate-700">
+                                    <span class="text-xs text-slate-400 font-medium">Req. Force</span>
+                                    <span id="req-force-display" class="text-sm font-mono text-emerald-400">19.6kN</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gravity Brakes Toggle -->
+                        <div class="flex items-center justify-between bg-slate-800/80 p-3 rounded border border-slate-600 mt-4 hover:border-emerald-500/50 transition-colors group">
+                            <div class="flex flex-col">
+                                <label class="text-xs font-bold text-slate-200 flex items-center gap-2 group-hover:text-emerald-400 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                                    GRAVITY BRAKES
+                                </label>
+                                <span class="text-[10px] text-slate-500">Auto-cut power for perfect stop</span>
+                            </div>
+                            <input type="checkbox" id="input-brakes" class="accent-emerald-500 w-5 h-5 cursor-pointer rounded bg-slate-900 border-slate-600">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logs -->
+                <div id="log-container" class="flex-1 h-32 bg-black/40 rounded border border-slate-800 p-3 font-mono text-xs overflow-y-auto flex flex-col-reverse">
+                    <div class="text-slate-700 italic">Ready for initialization...</div>
+                </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="p-6 border-t border-slate-800 bg-slate-900 mt-auto grid grid-cols-2 gap-4">
+                <button id="btn-run" class="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:grayscale text-white p-4 rounded-lg font-bold text-sm shadow-lg shadow-emerald-900/20 transition-all flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    INITIATE
+                </button>
+                <button id="btn-reset" class="bg-slate-800 hover:bg-slate-700 text-slate-200 p-4 rounded-lg font-bold text-sm border border-slate-700 transition-all flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    RECHARGE
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Simulation View -->
+        <main id="sim-container" class="flex-1 relative bg-gradient-to-b from-[#020617] via-[#0f172a] to-[#1e293b] overflow-hidden">
+            
+            <!-- EMERGENCY LOCKDOWN OVERLAY -->
+            <div id="lockdown-overlay" class="hidden absolute inset-0 bg-red-950/90 z-[100] flex flex-col items-center justify-center backdrop-blur-sm">
+                <div class="absolute inset-0 hazard-stripe opacity-10 pointer-events-none"></div>
+                <div class="border-4 border-red-500 p-8 bg-black/80 text-center shadow-[0_0_50px_rgba(220,38,38,0.5)] transform scale-100">
+                    <h1 class="text-6xl lg:text-8xl font-black text-red-500 tracking-tighter uppercase mb-2 animate-pulse">LOCKDOWN</h1>
+                    <div class="h-1 w-full bg-red-500 mb-6"></div>
+                    <p class="text-2xl text-red-200 font-mono font-bold mb-2">BATTERY DEPLETED</p>
+                    <p class="text-sm text-red-400 font-mono mb-8">EMERGENCY BRAKES ENGAGED • SYSTEM HALTED</p>
+                    <button onclick="resetSimulation()" class="bg-red-600 hover:bg-red-500 text-white px-8 py-4 rounded font-bold text-lg transition-all shadow-lg uppercase tracking-widest">
+                        System Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- GLOBAL WIRE SVG -->
+            <svg class="absolute inset-0 w-full h-full pointer-events-none z-40 overflow-visible">
+                 <defs>
+                    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="3" result="blur" />
+                      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                    </filter>
+                 </defs>
+                 <!-- Wire Path -->
+                 <path id="wire-path" d="M0,0 L0,0" fill="none" stroke="#475569" stroke-width="4" stroke-linecap="round" />
+                 <!-- Energy Packet -->
+                 <circle id="energy-dot" r="5" fill="#34d399" class="opacity-0" filter="url(#glow)">
+                     <animateMotion id="energy-anim" dur="0.8s" repeatCount="indefinite" path="M0,0 L0,0" />
+                 </circle>
+            </svg>
+
+            <!-- Background Effects -->
+            <div class="absolute inset-0 pointer-events-none z-0">
+                <div class="absolute top-10 left-1/4 w-96 h-24 bg-emerald-500/5 blur-[100px] rounded-full"></div>
+                <div class="absolute bottom-0 right-0 w-full h-64 bg-gradient-to-t from-emerald-900/10 to-transparent"></div>
+            </div>
+
+            <!-- Telemetry HUD -->
+            <div class="absolute top-6 right-6 w-72 glass-panel rounded-lg p-4 text-xs font-mono shadow-2xl z-50 border-l-4 border-l-emerald-500">
+                <div class="flex justify-between border-b border-slate-700 pb-2 mb-2">
+                    <span class="text-slate-300 font-bold tracking-wider">TELEMETRY</span>
+                    <span id="telemetry-status" class="text-slate-600">OFFLINE</span>
+                </div>
+                <div class="space-y-2">
+                    <!-- Time -->
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">MISSION TIME</span>
+                        <span class="text-white font-bold"><span id="hud-time">0.0</span><span class="text-xs text-slate-500 ml-1">s</span></span>
+                    </div>
+
+                    <!-- Altitude -->
+                    <div class="flex justify-between mt-1">
+                        <span class="text-slate-500">ALTITUDE</span>
+                        <span class="text-white"><span id="hud-alt">0.0</span><span class="text-xs text-slate-500 ml-1">m</span></span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1 rounded-full overflow-hidden my-1">
+                        <div id="hud-alt-bar" class="h-full bg-blue-500 w-0 shadow-[0_0_10px_#3b82f6]"></div>
+                    </div>
+
+                    <!-- Velocity -->
+                    <div class="flex justify-between mt-1">
+                        <span class="text-slate-500">VELOCITY</span>
+                        <span class="text-white"><span id="hud-vel">0.0</span><span class="text-xs text-slate-500 ml-1">m/s</span></span>
+                    </div>
+
+                    <!-- Energy Stats Separator -->
+                    <div class="border-t border-slate-700 border-dashed my-2"></div>
+
+                    <!-- Battery Level -->
+                    <div class="flex justify-between">
+                        <span class="text-slate-500">BATTERY LEVEL</span>
+                        <span id="hud-battery-text" class="text-emerald-400 font-bold">100%</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-sm overflow-hidden mb-1 border border-slate-700">
+                        <div id="hud-battery-bar" class="h-full bg-emerald-500 w-full transition-all duration-100 shadow-[0_0_10px_#10b981]"></div>
+                    </div>
+
+                    <!-- Power Draw -->
+                    <div class="flex justify-between mt-2">
+                        <span class="text-slate-500">POWER DEMAND</span>
+                        <span id="hud-power" class="text-yellow-500 font-bold">0 W</span>
+                    </div>
+                    
+                    <!-- Motor Force -->
+                    <div class="flex justify-between mt-1">
+                        <span class="text-slate-500">MOTOR FORCE</span>
+                        <span class="text-white font-bold"><span id="hud-force">0</span><span class="text-xs text-slate-500 ml-1">N</span></span>
+                    </div>
+
+                    <!-- Energy Used -->
+                    <div class="flex justify-between mt-1">
+                        <span class="text-slate-500">ENERGY USED</span>
+                        <span class="text-white"><span id="hud-energy">0.0</span><span class="text-xs text-slate-500 ml-1">kJ</span></span>
+                    </div>
+                    
+                    <!-- Potential Energy Reference (Debug/Validation) -->
+                    <div class="flex justify-between mt-1 text-[10px] opacity-50">
+                        <span class="text-slate-500">PE REF (mgh)</span>
+                        <span class="text-blue-300"><span id="hud-pe">0.0</span><span class="text-xs text-slate-500 ml-1">kJ</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scene Container -->
+            <div class="absolute inset-0 flex items-end justify-center pb-0 z-10">
+                
+                <!-- Battery Bank (2D View for better wire connection) -->
+                <div class="absolute bottom-0 left-4 lg:left-16 w-72 h-56 z-10 flex flex-col justify-end pb-8">
+                    <div class="relative w-full h-full flex flex-col items-center justify-end">
+                         <!-- Label -->
+                         <div class="mb-2 bg-slate-800/80 px-3 py-1 rounded-full border border-slate-600 text-[10px] font-bold tracking-wider text-slate-300 shadow-lg">
+                            HV BATTERY BANK
+                         </div>
+                         
+                         <!-- The Bank Structure -->
+                         <div class="relative p-3 bg-slate-800 border-2 border-slate-700 rounded-xl shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)]">
+                             <div id="battery-bank-container" class="grid grid-cols-8 gap-1">
+                                 <!-- Cells injected via JS -->
+                             </div>
+                             <!-- Terminal Cover -->
+                             <div class="absolute -top-3 left-0 right-0 h-3 bg-slate-700 rounded-t-lg border-t border-x border-slate-600"></div>
+                             
+                             <!-- Connection Node -->
+                             <div class="absolute -top-4 right-4 w-6 h-6 bg-slate-800 border-2 border-slate-600 rounded-full flex items-center justify-center z-20">
+                                 <div id="battery-connect-point" class="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_#10b981]"></div>
+                             </div>
+                         </div>
+                         
+                         <!-- Base -->
+                         <div class="w-[90%] h-6 bg-black/40 mt-1 rounded-full blur-md"></div>
+                    </div>
+                </div>
+
+                <!-- Tower Building -->
+                <div class="relative bg-slate-900 border-x border-slate-700 shadow-2xl flex flex-col items-center w-48 h-[85%] mb-0 z-20">
+                    
+                    <!-- Roof / Motor Room -->
+                    <div class="w-full h-16 bg-slate-800 border-y border-slate-600 absolute -top-16 flex items-center justify-center z-30">
+                        <!-- Connection Point for Wire (Top of motor room) -->
+                         <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 w-6 h-6 bg-slate-800 border-2 border-slate-600 rounded-full flex items-center justify-center z-20">
+                             <div id="motor-connect-point" class="w-3 h-3 bg-emerald-500 rounded-full shadow-[0_0_10px_#10b981]"></div>
+                         </div>
+
+                        <div class="w-24 h-10 border border-slate-600 rounded-md bg-slate-900 flex items-center justify-center relative overflow-hidden shadow-inner">
+                            <div id="motor-spinner" class="hidden absolute inset-0 bg-yellow-500/10"></div>
+                            <svg id="motor-icon" class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </div>
+                        <!-- Warning Light -->
+                        <div id="tower-light" class="absolute -top-5 right-4 w-3 h-3 rounded-full bg-red-900 border border-red-950 shadow-sm"></div>
+                    </div>
+
+                    <!-- Building Facade with Windows -->
+                    <div id="building-facade" class="absolute top-0 bottom-0 left-0 right-0 grid grid-cols-6 gap-0.5 p-2 overflow-hidden bg-slate-900 z-10">
+                        <!-- Windows injected via JS -->
+                    </div>
+
+                    <!-- Shaft -->
+                    <div class="absolute inset-y-0 w-20 bg-black/50 border-x border-slate-800 flex flex-col items-center z-20 backdrop-blur-sm">
+                         <!-- Guide Rails -->
+                         <div class="absolute left-1 top-0 bottom-0 w-0.5 bg-slate-700/50"></div>
+                         <div class="absolute right-1 top-0 bottom-0 w-0.5 bg-slate-700/50"></div>
+
+                         <!-- Cable -->
+                         <div id="elevator-cable" class="absolute top-0 w-1 bg-slate-500" style="height: 100%;"></div>
+
+                         <!-- Car -->
+                         <div id="elevator-car" class="absolute w-14 h-12 bg-slate-200 rounded-sm flex items-center justify-center shadow-[0_0_20px_rgba(0,0,0,0.8)] z-30 transition-all duration-500 ease-out" style="bottom: 0%;">
+                            <div class="w-12 h-10 border border-slate-300 bg-slate-100 flex flex-col items-center justify-end p-0.5 relative overflow-hidden">
+                                <div class="absolute top-0 w-full h-2 bg-slate-300 border-b border-slate-400 flex justify-center">
+                                    <div class="w-1 h-1 bg-slate-500 rounded-full mt-0.5"></div>
+                                </div>
+                                <!-- Load Visual -->
+                                <div id="elevator-load-bar" class="w-full bg-indigo-600/90 transition-all duration-300" style="height: 20%"></div>
+                                <!-- Interior Light -->
+                                <div class="absolute inset-0 bg-yellow-500/10 pointer-events-none"></div>
+                            </div>
+                         </div>
+                    </div>
+
+                    <!-- Entrance -->
+                    <div class="absolute bottom-0 w-32 h-20 border-t-4 border-slate-800 bg-black/80 flex items-end justify-center z-30">
+                         <div class="w-20 h-14 bg-yellow-900/20 border-x border-t border-slate-700 shadow-inner"></div>
+                    </div>
+                </div>
+
+                <!-- Ground -->
+                <div class="absolute bottom-0 w-full h-8 bg-gradient-to-b from-slate-900 to-black border-t border-slate-800 z-20"></div>
+            </div>
+
+        </main>
+    </div>
+
+<script>
+// -- Configuration --
+const GRAVITY = 9.81;
+const TOWER_HEIGHT = 300; // meters
+const ELEVATOR_MASS = 1000; // kg
+
+const MOTORS = [
+  { id: 'm1', name: 'Standard AC-100', maxForce: 20000, maxPower: 50000, type: 'Standard' },
+  { id: 'm2', name: 'Heavy Duty Titan', maxForce: 60000, maxPower: 150000, type: 'Heavy' },
+  { id: 'm3', name: 'Industrial Vector-X', maxForce: 70000, maxPower: 400000, type: 'Industrial' },
+  { id: 'm4', name: 'Budget Lifter', maxForce: 15000, maxPower: 20000, type: 'Economy' },
+  { id: 'custom', name: 'R&D Prototype', maxForce: 50000, maxPower: 100000, type: 'Custom' },
+];
+
+// -- State --
+let state = {
+    batteryCapacity: 5000, // kJ
+    currentEnergy: 5000, // kJ
+    motorId: 'm1',
+    payload: 1000,
+    customForce: 50000,
+    customPower: 100000,
+    gravityBrakes: false,
+    simState: 'idle', // idle, running, finished, crashed, dead_battery
+    elevatorY: 0,
+    velocity: 0,
+    timeElapsed: 0,
+    energyUsed: 0 // kJ (Work done)
+};
+
+let lastTime = 0;
+let loopId = null;
+
+// -- DOM Elements --
+const els = {
+    inputBattery: document.getElementById('input-battery'),
+    batteryDisplay: document.getElementById('battery-display'),
+    sidebarBatteryBar: document.getElementById('sidebar-battery-bar'),
+    sidebarBatteryPct: document.getElementById('sidebar-battery-pct'),
+    motorList: document.getElementById('motor-list'),
+    inputPayload: document.getElementById('input-payload'),
+    inputBrakes: document.getElementById('input-brakes'),
+    payloadDisplay: document.getElementById('payload-display'),
+    totalMassDisplay: document.getElementById('total-mass-display'),
+    reqForceDisplay: document.getElementById('req-force-display'),
+    btnRun: document.getElementById('btn-run'),
+    btnReset: document.getElementById('btn-reset'),
+    logContainer: document.getElementById('log-container'),
+    
+    // Visuals
+    batteryBankContainer: document.getElementById('battery-bank-container'),
+    elevatorCar: document.getElementById('elevator-car'),
+    elevatorCable: document.getElementById('elevator-cable'),
+    elevatorLoadBar: document.getElementById('elevator-load-bar'),
+    statusBadge: document.getElementById('status-badge'),
+    statusDot: document.getElementById('status-dot'),
+    statusText: document.getElementById('status-text'),
+    wirePath: document.getElementById('wire-path'),
+    energyDot: document.getElementById('energy-dot'),
+    energyAnim: document.getElementById('energy-anim'),
+    motorSpinner: document.getElementById('motor-spinner'),
+    motorIcon: document.getElementById('motor-icon'),
+    towerLight: document.getElementById('tower-light'),
+    batteryConnect: document.getElementById('battery-connect-point'),
+    motorConnect: document.getElementById('motor-connect-point'),
+    simContainer: document.getElementById('sim-container'),
+    lockdownOverlay: document.getElementById('lockdown-overlay'),
+    buildingFacade: document.getElementById('building-facade'),
+    
+    // HUD
+    hudTime: document.getElementById('hud-time'),
+    hudAlt: document.getElementById('hud-alt'),
+    hudAltBar: document.getElementById('hud-alt-bar'),
+    hudVel: document.getElementById('hud-vel'),
+    hudBatteryText: document.getElementById('hud-battery-text'),
+    hudBatteryBar: document.getElementById('hud-battery-bar'),
+    hudPower: document.getElementById('hud-power'),
+    hudForce: document.getElementById('hud-force'),
+    hudEnergy: document.getElementById('hud-energy'),
+    hudPe: document.getElementById('hud-pe'),
+    telemetryStatus: document.getElementById('telemetry-status'),
+};
+
+// -- Initialization --
+function init() {
+    renderMotors();
+    renderBatteryBank();
+    renderBuildingWindows();
+    updateCalculations();
+    
+    // Initialize Loop for Wire Updates (Runs continuously)
+    const visualLoop = () => {
+        updateWire();
+        requestAnimationFrame(visualLoop);
+    };
+    requestAnimationFrame(visualLoop);
+    
+    // Listeners
+    els.inputBattery.addEventListener('input', (e) => {
+        state.batteryCapacity = parseInt(e.target.value);
+        state.currentEnergy = state.batteryCapacity; // Auto recharge on config change
+        renderBatteryBank();
+        updateUI();
+    });
+    
+    els.inputPayload.addEventListener('input', (e) => {
+        state.payload = parseInt(e.target.value);
+        updateCalculations();
+    });
+
+    els.inputBrakes.addEventListener('change', (e) => {
+        state.gravityBrakes = e.target.checked;
+    });
+    
+    els.btnRun.addEventListener('click', startSimulation);
+    els.btnReset.addEventListener('click', resetSimulation);
+}
+
+function getCurrentMotor() {
+    const m = MOTORS.find(m => m.id === state.motorId);
+    if (m.id === 'custom') {
+        return { ...m, maxForce: state.customForce, maxPower: state.customPower };
+    }
+    return m;
+}
+
+// -- Visual Helpers --
+function updateWire() {
+    if(!els.batteryConnect || !els.motorConnect) return;
+
+    const p1 = els.batteryConnect.getBoundingClientRect();
+    const p2 = els.motorConnect.getBoundingClientRect();
+    const container = els.simContainer.getBoundingClientRect(); 
+    
+    // Calculate center points relative to container
+    const x1 = p1.left - container.left + p1.width/2; 
+    const y1 = p1.top - container.top + p1.height/2;
+    const x2 = p2.left - container.left + p2.width/2;
+    const y2 = p2.top - container.top + p2.height/2;
+    
+    // Draw curve: Out right from battery, Up then Left into Motor
+    const path = `M ${x1} ${y1} C ${x1 + 100} ${y1}, ${x2 - 100} ${y2 + 50}, ${x2} ${y2}`;
+    
+    els.wirePath.setAttribute('d', path);
+    els.energyAnim.setAttribute('path', path);
+}
+
+function renderBuildingWindows() {
+    els.buildingFacade.innerHTML = '';
+    // 6 columns, enough rows to fill height (approx 50 rows)
+    const totalWindows = 6 * 50;
+    for(let i=0; i<totalWindows; i++) {
+        const div = document.createElement('div');
+        div.className = "window w-full h-3 rounded-[1px]"; // Fixed height for aspect ratio
+        // 20% chance to be lit initially
+        if(Math.random() < 0.2) {
+            div.classList.add('lit');
+        }
+        els.buildingFacade.appendChild(div);
+    }
+}
+
+function renderMotors() {
+    els.motorList.innerHTML = '';
+    MOTORS.forEach(m => {
+        const btn = document.createElement('button');
+        const isSelected = state.motorId === m.id;
+        btn.className = `p-3 rounded border text-left transition-all w-full mb-2 ${isSelected ? 'bg-emerald-600/20 border-emerald-500 text-emerald-100 shadow-[0_0_15px_#10b98133]' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-600'}`;
+        
+        let content = `
+            <div class="flex justify-between items-center mb-1">
+                <span class="font-bold text-sm">${m.name}</span>
+                <span class="text-[10px] uppercase bg-slate-900 px-1.5 py-0.5 rounded text-slate-500">${m.type}</span>
+            </div>`;
+            
+        if(m.id === 'custom' && isSelected) {
+             content += `
+             <div class="grid grid-cols-2 gap-2 mt-2" onclick="event.stopPropagation()">
+                <div>
+                   <label class="text-[10px] text-slate-500">Max Force (N)</label>
+                   <input id="custom-force" type="number" value="${state.customForce}" class="custom-input" />
+                </div>
+                <div>
+                   <label class="text-[10px] text-slate-500">Max Power (W)</label>
+                   <input id="custom-power" type="number" value="${state.customPower}" class="custom-input" />
+                </div>
+             </div>
+             `;
+        } else {
+             content += `
+             <div class="flex gap-3 text-[10px] font-mono opacity-80">
+                <span>${(m.maxForce/1000).toFixed(0)}kN Torque</span>
+                <span>|</span>
+                <span>${(m.maxPower/1000).toFixed(0)}kW Power</span>
+            </div>`;
+        }
+
+        btn.innerHTML = content;
+        
+        btn.onclick = () => {
+            if(state.simState !== 'idle') return;
+            state.motorId = m.id;
+            renderMotors();
+            updateCalculations();
+        };
+        els.motorList.appendChild(btn);
+    });
+    
+    // Attach Listeners for Custom Inputs
+    const fInput = document.getElementById('custom-force');
+    const pInput = document.getElementById('custom-power');
+    if(fInput && pInput) {
+         fInput.addEventListener('input', (e) => {
+             state.customForce = Number(e.target.value);
+             updateCalculations();
+         });
+         pInput.addEventListener('input', (e) => {
+             state.customPower = Number(e.target.value);
+             updateCalculations();
+         });
+    }
+}
+
+function renderBatteryBank() {
+    els.batteryDisplay.textContent = `${state.batteryCapacity.toLocaleString()} kJ`;
+    
+    // Determine visual grid size
+    const cellCount = 32; // Fixed grid for visual consistency
+    els.batteryBankContainer.innerHTML = '';
+    
+    // Calculate filled cells based on CURRENT energy vs CAPACITY
+    const filledCount = Math.ceil((state.currentEnergy / state.batteryCapacity) * cellCount);
+    
+    for(let i=0; i<cellCount; i++) {
+        const div = document.createElement('div');
+        div.className = "battery-cell w-full h-4 rounded-[1px]";
+        
+        if(i < filledCount) {
+            div.classList.add('filled');
+            if(state.simState === 'running') {
+                 // Make active cells glow/pulse
+                 div.classList.add('active');
+            }
+        }
+        els.batteryBankContainer.appendChild(div);
+    }
+}
+
+function updateUI() {
+    // Update Battery Bar
+    const pct = Math.max(0, (state.currentEnergy / state.batteryCapacity) * 100);
+    els.sidebarBatteryBar.style.width = `${pct}%`;
+    els.sidebarBatteryPct.textContent = `${pct.toFixed(0)}%`;
+    els.hudBatteryBar.style.width = `${pct}%`;
+    els.hudBatteryText.textContent = `${pct.toFixed(1)}%`;
+    
+    const colorClass = pct < 20 ? 'bg-red-500' : 'bg-emerald-500';
+    const removeClass = pct < 20 ? 'bg-emerald-500' : 'bg-red-500';
+    
+    els.sidebarBatteryBar.classList.add(colorClass);
+    els.sidebarBatteryBar.classList.remove(removeClass);
+    els.hudBatteryBar.classList.add(colorClass);
+    els.hudBatteryBar.classList.remove(removeClass);
+}
+
+function updateCalculations() {
+    const totalMass = ELEVATOR_MASS + state.payload;
+    const weightForce = totalMass * GRAVITY;
+    const currentMotor = getCurrentMotor();
+    
+    els.payloadDisplay.textContent = `${state.payload.toLocaleString()} kg`;
+    els.totalMassDisplay.textContent = `${totalMass}kg`;
+    
+    els.reqForceDisplay.textContent = `${(weightForce/1000).toFixed(1)}kN`;
+    
+    // Update color based on static capability
+    if(weightForce > currentMotor.maxForce) {
+        els.reqForceDisplay.classList.remove('text-emerald-400');
+        els.reqForceDisplay.classList.add('text-red-400');
+    } else {
+        els.reqForceDisplay.classList.remove('text-red-400');
+        els.reqForceDisplay.classList.add('text-emerald-400');
+    }
+    
+    const fillPercent = Math.min(100, (state.payload / 5000) * 100);
+    els.elevatorLoadBar.style.height = `${fillPercent}%`;
+}
+
+function addLog(msg, type='info') {
+    const div = document.createElement('div');
+    div.className = `mb-1 ${type === 'error' ? 'text-red-400' : type === 'success' ? 'text-emerald-400' : 'text-blue-300'}`;
+    const time = new Date().toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    div.innerHTML = `<span class="opacity-30 mr-2">${time}</span>${msg}`;
+    els.logContainer.prepend(div);
+}
+
+function setSimState(s) {
+    state.simState = s;
+    els.statusText.textContent = s.toUpperCase();
+    els.inputBattery.disabled = (s !== 'idle');
+    els.inputPayload.disabled = (s !== 'idle');
+    els.inputBrakes.disabled = (s !== 'idle');
+    
+    // Disable inputs in the motor list
+    const customForce = document.getElementById('custom-force');
+    const customPower = document.getElementById('custom-power');
+    if(customForce) customForce.disabled = (s !== 'idle');
+    if(customPower) customPower.disabled = (s !== 'idle');
+    
+    if(s === 'running') {
+        els.statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold tracking-wider flex items-center gap-2 border bg-emerald-900/30 border-emerald-500/50 text-emerald-400 animate-pulse";
+        els.statusDot.classList.remove('hidden');
+        
+        els.wirePath.setAttribute('stroke', '#10b981');
+        els.wirePath.setAttribute('stroke-width', '3');
+        els.wirePath.style.filter = "drop-shadow(0 0 5px #10b981)";
+        els.energyDot.classList.remove('opacity-0');
+        
+        els.motorSpinner.classList.remove('hidden');
+        els.motorSpinner.classList.add('animate-pulse');
+        els.motorIcon.classList.add('animate-spin');
+        els.towerLight.className = "absolute -top-5 right-4 w-3 h-3 rounded-full bg-red-500 animate-ping shadow-[0_0_10px_red]";
+        
+        els.telemetryStatus.className = "text-emerald-400 animate-pulse";
+        els.telemetryStatus.textContent = "DISCHARGING";
+        
+        els.elevatorCar.classList.remove('duration-500', 'ease-out');
+        els.elevatorCar.classList.add('no-transition');
+        
+        renderBatteryBank(); // refresh active state
+
+    } else if (s === 'dead_battery') {
+         els.lockdownOverlay.classList.remove('hidden');
+         els.statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold tracking-wider flex items-center gap-2 border bg-red-900/30 border-red-500/50 text-red-400";
+         els.statusDot.classList.add('hidden');
+         
+         els.wirePath.setAttribute('stroke', '#334155');
+         els.wirePath.style.filter = "none";
+         els.energyDot.classList.add('opacity-0');
+         
+         els.telemetryStatus.className = "text-red-600 animate-pulse";
+         els.telemetryStatus.textContent = "CRITICAL";
+         
+         renderBatteryBank(); // shows empty
+         
+    } else {
+        els.lockdownOverlay.classList.add('hidden');
+        
+        if(s === 'crashed') {
+            els.statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold tracking-wider flex items-center gap-2 border bg-red-900/30 border-red-500/50 text-red-400";
+        } else if (s === 'finished') {
+            els.statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold tracking-wider flex items-center gap-2 border bg-blue-900/30 border-blue-500/50 text-blue-400";
+        } else {
+            els.statusBadge.className = "px-3 py-1 rounded-full text-xs font-bold tracking-wider flex items-center gap-2 border bg-slate-800 border-slate-700 text-slate-400";
+        }
+        els.statusDot.classList.add('hidden');
+        
+        els.wirePath.setAttribute('stroke', '#334155');
+        els.wirePath.setAttribute('stroke-width', '2');
+        els.wirePath.style.filter = "none";
+        els.energyDot.classList.add('opacity-0');
+        
+        els.motorSpinner.classList.add('hidden');
+        els.motorIcon.classList.remove('animate-spin');
+        els.towerLight.className = "absolute -top-5 right-4 w-3 h-3 rounded-full bg-red-900 border border-red-950 shadow-sm";
+        
+        els.telemetryStatus.className = "text-slate-600";
+        els.telemetryStatus.textContent = "OFFLINE";
+
+        if(s === 'idle') {
+             els.elevatorCar.classList.add('duration-500', 'ease-out');
+             els.elevatorCar.classList.remove('no-transition');
+             renderBatteryBank(); // reset visual
+        }
+    }
+}
+
+// -- PHYSICS LOOP --
+function startSimulation() {
+    if(state.simState !== 'idle') return;
+    
+    els.logContainer.innerHTML = '';
+    
+    if(state.currentEnergy <= 10) {
+        addLog("BATTERY CRITICAL: Please recharge.", "error");
+        return;
+    }
+
+    addLog("Closing High-Voltage Relays...");
+    
+    const currentMotor = getCurrentMotor();
+    const totalMass = ELEVATOR_MASS + state.payload;
+    const weightForce = totalMass * GRAVITY;
+    
+    if(currentMotor.maxForce < weightForce) {
+        setSimState('crashed');
+        addLog(`CRITICAL: Motor Stall Torque Exceeded.`, 'error');
+        return;
+    }
+    
+    setSimState('running');
+    
+    // Reset Physics Vars
+    state.elevatorY = 0;
+    state.velocity = 0;
+    state.timeElapsed = 0;
+    state.energyUsed = 0;
+    
+    lastTime = performance.now();
+    requestAnimationFrame(loop);
+}
+
+function loop(time) {
+    if(state.simState !== 'running') return;
+    
+    // Calculate precise Delta Time
+    const deltaTime = (time - lastTime) / 1000;
+    lastTime = time;
+    
+    // Cap DT to prevent spiral of death on lag spikes
+    const dtFrame = Math.min(deltaTime, 0.05); 
+    
+    const currentMotor = getCurrentMotor();
+    const totalMass = ELEVATOR_MASS + state.payload;
+    const weightForce = totalMass * GRAVITY;
+    
+    // --- PHYSICS SUB-STEPPING ---
+    // Perform X physics calculations per frame for high precision
+    // This ensures the "Gravity Brake" condition is checked frequently enough
+    // to stop at exactly the right moment.
+    const subSteps = 10;
+    const dt = dtFrame / subSteps;
+    
+    let mechanicalPower = 0;
+    let motorForce = 0;
+
+    for(let i=0; i<subSteps; i++) {
+        
+        // 1. Energy Check
+        if (state.currentEnergy <= 0) {
+            setSimState('dead_battery');
+            addLog("SYSTEM SHUTDOWN: Battery Depleted.", "error");
+            state.velocity = 0; 
+            return; // Exit loop immediately
+        }
+
+        // 2. Motor Logic
+        motorForce = currentMotor.maxForce;
+        if(state.velocity > 0.1) {
+            const forceLimit = currentMotor.maxPower / state.velocity;
+            motorForce = Math.min(currentMotor.maxForce, forceLimit);
+        }
+        
+        // 3. Gravity Brakes Logic (High Precision Check)
+        // d = v^2 / 2g
+        if (state.gravityBrakes && state.velocity > 0) {
+            const stoppingDistance = (state.velocity * state.velocity) / (2 * GRAVITY);
+            
+            // Use a small epsilon for float comparison, but strict threshold
+            if (state.elevatorY + stoppingDistance >= TOWER_HEIGHT) {
+                motorForce = 0; // Cut power immediately
+            }
+        }
+        
+        // 4. Integration
+        const netForce = motorForce - weightForce;
+        const acceleration = netForce / totalMass;
+        
+        state.velocity += acceleration * dt;
+        state.elevatorY += state.velocity * dt;
+        state.timeElapsed += dt;
+        
+        // 5. Energy Accumulation
+        mechanicalPower = motorForce * state.velocity;
+        if (state.velocity > 0 && motorForce > 0) {
+            const energySlice = (mechanicalPower * dt) / 1000; // kJ
+            state.currentEnergy -= energySlice;
+            state.energyUsed += energySlice;
+        }
+        
+        // 6. Terminal Conditions (Inside sub-step)
+        if(state.elevatorY >= TOWER_HEIGHT) {
+            setSimState('finished');
+            // Snap to top for visual cleanliness
+            state.elevatorY = TOWER_HEIGHT; 
+            addLog(`TARGET REACHED: ${state.timeElapsed.toFixed(2)}s. Energy Used: ${state.energyUsed.toFixed(1)}kJ`, 'success');
+            break; // Exit sub-steps
+        } else if (state.elevatorY < -0.1 && state.timeElapsed > 0.5) {
+            setSimState('crashed');
+            addLog(`FAILURE: Lift lost altitude.`, 'error');
+            break;
+        } else if (motorForce < weightForce && state.velocity <= 0 && state.timeElapsed > 0.2) {
+            setSimState('crashed');
+            addLog(`STALL: Insufficient Motor Power.`, 'error');
+            break;
+        }
+    }
+
+    // --- Visual Updates (Once per frame) ---
+    if(state.simState === 'finished') {
+        els.elevatorCar.style.bottom = '100%';
+    } else {
+        const pct = (state.elevatorY / TOWER_HEIGHT) * 100;
+        els.elevatorCar.style.bottom = `${pct}%`;
+        els.elevatorCable.style.bottom = `calc(${pct}% + 40px)`; 
+    }
+    
+    // HUD Updates
+    els.hudTime.textContent = state.timeElapsed.toFixed(1);
+    els.hudAlt.textContent = state.elevatorY.toFixed(1);
+    const pct = Math.min(100, (state.elevatorY / TOWER_HEIGHT) * 100);
+    els.hudAltBar.style.width = `${pct}%`;
+    els.hudVel.textContent = state.velocity.toFixed(1);
+    
+    els.hudPower.textContent = `${mechanicalPower.toFixed(0)} W`;
+    els.hudForce.textContent = `${motorForce.toFixed(0)}`;
+    els.hudEnergy.textContent = state.energyUsed.toFixed(1);
+    
+    // Calc Potential Energy for comparison
+    const pe = (totalMass * GRAVITY * state.elevatorY) / 1000;
+    els.hudPe.textContent = pe.toFixed(1);
+    
+    if(mechanicalPower > 1000) {
+        els.hudPower.className = "text-yellow-500 font-bold animate-pulse";
+    } else {
+        els.hudPower.className = "text-slate-400 font-bold";
+    }
+    
+    updateUI();
+    renderBatteryBank();
+
+    if(state.simState === 'running') {
+        requestAnimationFrame(loop);
+    }
+}
+
+function resetSimulation() {
+    setSimState('idle');
+    state.elevatorY = 0;
+    state.velocity = 0;
+    state.timeElapsed = 0;
+    state.energyUsed = 0;
+    
+    // Recharge logic
+    state.currentEnergy = state.batteryCapacity;
+    
+    els.elevatorCar.style.bottom = '0%';
+    els.elevatorCable.style.bottom = '40px';
+    
+    els.hudTime.textContent = '0.0';
+    els.hudAlt.textContent = '0.0';
+    els.hudAltBar.style.width = '0%';
+    els.hudVel.textContent = '0.0';
+    els.hudPower.textContent = '0 W';
+    els.hudForce.textContent = '0';
+    els.hudEnergy.textContent = '0.0';
+    els.hudPe.textContent = '0.0';
+    
+    updateUI();
+    renderBatteryBank();
+    addLog("Battery Recharged. Systems Reset.");
+    
+    // Re-generate random lights
+    renderBuildingWindows();
+}
+
+// Start
+init();
+
+</script>
+</body>
+</html>
