@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Timer • Alarm</title>
+<style>
+  /* Light-first, design-forward theme */
+  :root{
+    --bg: #ffffff;
+    --panel: #ffffff;
+    --ink: #0b1220;
+    --muted: #6b7280;
+    --line: #e6e8ee;
+    --shadow: 0 10px 30px rgba(13, 38, 76, .10), 0 2px 8px rgba(13, 38, 76, .06);
+    --accent: #2563eb;     /* cobalt-blue accent */
+    --accent-ink: #ffffff;
+    --focus: 0 0 0 3px rgba(37, 99, 235, .20);
+    --blue-flash: #1d4ed8;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    display:grid; place-items:center; padding:24px;
+  }
+
+  /* Layout */
+  .wrap{width:min(840px, 94vw)}
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:22px 22px 18px;
+    box-shadow:var(--shadow);
+  }
+  .heading{
+    font-size:1.35rem; font-weight:800; letter-spacing:.2px; margin:0 0 12px;
+  }
+
+  /* Controls */
+  .row{display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end}
+  .col{flex:1 1 240px}
+  .label{display:block; font-size:.9rem; color:var(--muted); margin:0 0 6px}
+  .seg{display:inline-flex; border:1px solid var(--line); border-radius:14px; overflow:hidden; background:#f7f8fb}
+  .seg input{display:none}
+  .seg label{
+    padding:10px 14px; cursor:pointer; user-select:none; color:#374151; font-weight:600; letter-spacing:.1px;
+    border-right:1px solid var(--line);
+  }
+  .seg label:last-child{border-right:0}
+  .seg input:checked + label{background:#eef2ff; color:#1e40af}
+
+  input[type="number"], select, input[type="time"]{
+    width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--line); background:#fff; color:var(--ink);
+    font-size:1rem; outline:none; transition:border-color .15s, box-shadow .15s;
+  }
+  input:focus, select:focus{border-color:#c7d2fe; box-shadow:var(--focus)}
+  .hint{font-size:.85rem; color:var(--muted); margin-top:6px}
+
+  .btn{
+    appearance:none; border:0; border-radius:14px; padding:12px 18px; font-weight:800; letter-spacing:.2px;
+    background:var(--accent); color:var(--accent-ink); cursor:pointer; box-shadow:0 8px 22px rgba(37,99,235,.22);
+    transition:transform .05s ease, filter .15s ease;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn:disabled{opacity:.5; cursor:not-allowed; filter:saturate(.6)}
+  .ghost{
+    background:#f3f4f6; color:#0b1220; box-shadow:none; border:1px solid var(--line);
+  }
+
+  .footer{
+    display:flex; justify-content:space-between; align-items:center; margin-top:14px;
+    color:var(--muted); font-size:.85rem;
+  }
+
+  /* Fullscreen countdown */
+  .screen{
+    position:fixed; inset:0; display:none; background:var(--bg);
+    align-items:center; justify-content:center; flex-direction:column; gap:24px; padding:24px;
+  }
+  .screen.show{display:flex}
+  .time{
+    font-variant-numeric:tabular-nums; line-height:1.05; text-align:center;
+    font-weight:500;
+    font-size:clamp(52px, 40vw, 600px);
+    letter-spacing:.02em;
+  }
+  .sub{color:var(--muted); font-size:clamp(12px, 2.4vw, 20px)}
+  .topbar{
+    position:fixed; top:18px; left:50%; transform:translateX(-50%);
+    display:flex; gap:10px; align-items:center;
+  }
+  .flash{animation:flashing 1s steps(2, jump-none) infinite}
+  @keyframes flashing{
+    0%{background:var(--blue-flash); color:#ffffff}
+    50%{background:#eaf2ff; color:var(--blue-flash)}
+    100%{background:var(--blue-flash); color:#ffffff}
+  }
+
+  /* Micro-details */
+  .badge{
+    font-size:.72rem; font-weight:700; padding:6px 10px; border-radius:999px; color:#1e40af; background:#eef2ff; border:1px solid #dde3ff
+  }
+  .sr-only{
+    position:absolute;
+    width:1px;
+    height:1px;
+    padding:0;
+    margin:-1px;
+    overflow:hidden;
+    clip:rect(0,0,0,0);
+    border:0;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Setup view -->
+    <div class="card" id="setup">
+      <div class="heading">Timer / Alarm</div>
+
+      <div class="row" role="radiogroup" aria-label="Mode">
+        <div class="col" style="flex:0 1 auto">
+          <span class="label">Mode</span>
+          <div class="seg">
+            <input type="radio" name="mode" id="modeTimer" value="timer" checked>
+            <label for="modeTimer">Timer</label>
+            <input type="radio" name="mode" id="modeAlarm" value="alarm">
+            <label for="modeAlarm">Alarm</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" id="timerRow" style="margin-top:14px">
+        <div class="col">
+          <label class="label" for="timerValue">Timer value</label>
+          <div class="row">
+            <div class="col">
+              <input id="timerValue" type="number" min="1" inputmode="numeric" placeholder="e.g. 90">
+              <div class="hint">Enter a number and choose units.</div>
+            </div>
+            <div style="width:170px">
+              <label class="label sr-only" for="timerUnits">Units</label>
+              <select id="timerUnits">
+                <option value="seconds">seconds</option>
+                <option value="minutes">minutes</option>
+                <option value="hours">hours</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" id="alarmRow" style="margin-top:14px; display:none">
+        <div class="col">
+          <label class="label" for="alarmTime">Alarm time</label>
+          <input id="alarmTime" type="time" step="1">
+          <div class="hint">Example: 10:45 or 10:45:00. If the time has passed today, the alarm triggers tomorrow.</div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:16px">
+        <button id="startBtn" class="btn">START</button>
+      </div>
+
+      <div class="footer">
+        <span class="badge">made with ♥ by nate</span>
+        <span id="validHint"></span>
+      </div>
+    </div>
+
+    <!-- Fullscreen countdown view -->
+    <div class="screen" id="screen">
+      <div class="topbar">
+        <button id="newBtn" class="btn ghost" style="display:none;">NEW</button>
+      </div>
+      <div class="time" id="display">—</div>
+      <div class="sub" id="subline"></div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const modeTimer = document.getElementById('modeTimer');
+  const modeAlarm = document.getElementById('modeAlarm');
+  const timerRow  = document.getElementById('timerRow');
+  const alarmRow  = document.getElementById('alarmRow');
+  const timerValue= document.getElementById('timerValue');
+  const timerUnits= document.getElementById('timerUnits');
+  const alarmTime = document.getElementById('alarmTime');
+  const startBtn  = document.getElementById('startBtn');
+  const validHint = document.getElementById('validHint');
+  const setupView = document.getElementById('setup');
+  const screenView= document.getElementById('screen');
+  const displayEl = document.getElementById('display');
+  const sublineEl = document.getElementById('subline');
+  const newBtn    = document.getElementById('newBtn');
+
+  let tickHandle = null;
+  let flashStopHandle = null;
+  let targetEpochMs = 0;
+  let baselineSecs = 0;
+  let mode = 'timer';
+
+  function setMode(m){
+    mode = m;
+    const isTimer = m === 'timer';
+    timerRow.style.display = isTimer ? '' : 'none';
+    alarmRow.style.display = isTimer ? 'none' : '';
+    validate();
+  }
+
+  function secsFromTimer(){
+    const v = Number(timerValue.value);
+    if(!Number.isFinite(v) || v <= 0) return null;
+    const u = timerUnits.value;
+    if(u==='seconds') return Math.round(v);
+    if(u==='minutes') return Math.round(v*60);
+    if(u==='hours')   return Math.round(v*3600);
+    return null;
+  }
+
+  function nextAlarmEpochMs(){
+    if(!alarmTime.value) return null;
+    const [hh,mm='0',ss='0']=alarmTime.value.split(':');
+    const now=new Date();
+    const t=new Date(now);
+    t.setHours(Number(hh),Number(mm),Number(ss),0);
+    if(t.getTime()<=now.getTime()) t.setDate(t.getDate()+1);
+    return t.getTime();
+  }
+
+  function validate(){
+    let ok=false, msg='';
+    if(mode==='timer'){
+      const s=secsFromTimer();
+      ok = s!==null && s>0;
+      if(!ok) msg='Enter a positive time.';
+    }else{
+      const t=nextAlarmEpochMs();
+      ok = t!==null;
+      if(!ok) msg='Choose a valid clock time.';
+    }
+    startBtn.disabled=!ok;
+    validHint.textContent=msg;
+    return ok;
+  }
+
+  // Dynamic format selection based on baseline duration
+  function fmtDynamic(secs, baseline){
+    const s = Math.max(0, Math.floor(Math.abs(secs)));
+    const base = baseline ?? s;
+    const HMMSS = (x)=>`${Math.floor(x/3600)}:${String(Math.floor((x%3600)/60)).padStart(2,'0')}:${String(x%60).padStart(2,'0')}`;
+    const MMSS  = (x)=>`${Math.floor(x/60)}:${String(x%60).padStart(2,'0')}`;
+    if(base >= 6000) return HMMSS(s); // >=100 min → H:MM:SS
+    if(base >=   60) return MMSS(s);  // >=60 s   → M:SS
+    return String(s);                  // otherwise → S
+  }
+
+  function startCountdown(endEpoch, baseSecs, subtitle){
+    targetEpochMs = endEpoch;
+    baselineSecs  = baseSecs;
+    setupView.style.display='none';
+    screenView.classList.add('show');
+    screenView.classList.remove('flash');
+    newBtn.style.display='none';
+    sublineEl.textContent = subtitle || '';
+    stopTick();
+    tickHandle = setInterval(()=>{
+      const now=Date.now();
+      const remaining = endEpoch - now;
+      const remainSec = Math.ceil(remaining/1000);
+      displayEl.textContent = fmtDynamic(remainSec, baselineSecs);
+      if(remaining<=0) finish();
+    }, 200);
+    // immediate paint
+    displayEl.textContent = fmtDynamic(Math.ceil((endEpoch-Date.now())/1000), baselineSecs);
+  }
+
+  function finish(){
+    stopTick();
+    screenView.classList.add('flash');
+    newBtn.style.display='inline-flex';
+    sublineEl.textContent='Finished';
+    clearTimeout(flashStopHandle);
+    flashStopHandle = setTimeout(()=> {
+      stopFlashing();
+      sublineEl.textContent='Finished (auto-stopped)';
+    }, 60000);
+  }
+
+  function stopFlashing(){ screenView.classList.remove('flash'); }
+  function stopTick(){ clearInterval(tickHandle); tickHandle=null; }
+
+  function resetUI(){
+    stopTick(); stopFlashing(); clearTimeout(flashStopHandle);
+    screenView.classList.remove('show');
+    newBtn.style.display='none';
+    displayEl.textContent='—'; sublineEl.textContent='';
+    setupView.style.display='';
+    validate();
+  }
+
+  // Events
+  modeTimer.addEventListener('change',()=>setMode('timer'));
+  modeAlarm.addEventListener('change',()=>setMode('alarm'));
+  timerValue.addEventListener('input', validate);
+  timerUnits.addEventListener('change', validate);
+  alarmTime.addEventListener('input', validate);
+
+  startBtn.addEventListener('click', ()=>{
+    if(!validate()) return;
+    if(mode==='timer'){
+      const secs=secsFromTimer();
+      startCountdown(Date.now()+secs*1000, secs, 'Timer running');
+    }else{
+      const end=nextAlarmEpochMs();
+      const secs=Math.max(0, Math.ceil((end-Date.now())/1000));
+      const when=new Date(end);
+      const hh=String(when.getHours()).padStart(2,'0');
+      const mm=String(when.getMinutes()).padStart(2,'0');
+      const ss=String(when.getSeconds()).padStart(2,'0');
+      startCountdown(end, secs, `Alarm set for ${hh}:${mm}:${ss}`);
+    }
+  });
+
+  newBtn.addEventListener('click', resetUI);
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') resetUI(); });
+
+  // Init
+  setMode('timer');
+  validate();
+})();
+</script>
+</body>
+</html>
