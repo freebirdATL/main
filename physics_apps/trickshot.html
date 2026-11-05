@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f3ea">
+  <meta name="description" content="Three launchers, real physics, one ridiculous basketball shot. An interactive physics playground.">
+  <title>Trickshot — A Physics Playground</title>
+  <style>
+:root{--paper:#f5f3ea;--ink:#263d35;--muted:#69776d;--orange:#da572c;--line:#d6dcd0;--cream:#fffcf4;--green:#3e624d;--soft:#edf0e5;--mono:ui-monospace,SFMono-Regular,Consolas,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,"Avenir Next",Avenir,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;-webkit-font-smoothing:antialiased}button,input{font:inherit}button,a,input{-webkit-tap-highlight-color:transparent}button{cursor:pointer;color:inherit}button:disabled{cursor:default;opacity:.45}button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid var(--orange);outline-offset:4px}input:focus-visible{outline:2px solid var(--orange);outline-offset:1px}button{transition:background .16s,transform .16s,border-color .16s}button:not(:disabled):active{transform:translateY(1px)}svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.icon-library{position:absolute;width:0;height:0;overflow:hidden}[hidden]{display:none!important}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.site-shell{width:min(1456px,100%);margin:auto;padding:0 48px}.site-header{height:94px;display:flex;align-items:center;border-bottom:1px solid var(--line);gap:29px}.brand{text-decoration:none;color:var(--ink);display:flex;align-items:center;gap:9px;font-size:25px;letter-spacing:-1.3px;font-weight:900}.brand svg{width:32px;height:32px;color:var(--orange)}.brand-dot{color:var(--orange)}.header-caption{font-size:10px;font-weight:600;letter-spacing:2px;border-left:1px solid #ccd2c5;padding-left:28px}.header-actions{display:flex;align-items:center;gap:26px;margin-left:auto}.text-button{border:0;background:none;padding:8px 0;font-size:12px;font-weight:650;display:inline-flex;align-items:center;gap:9px}.text-button:hover:not(:disabled){color:var(--orange)}.text-button svg{width:16px;height:16px}.icon-button{display:grid;place-items:center;width:35px;height:35px;border:1px solid var(--line);border-radius:50%;background:transparent}.icon-button:hover{background:#e6eadd}.icon-button svg{width:17px;height:17px}.intro{display:flex;align-items:center;justify-content:space-between;padding:39px 0 30px;gap:20px}.eyebrow{font-size:9px;letter-spacing:1.8px;font-weight:750;margin:0;display:flex;gap:8px;align-items:center}.live-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#6d8765}.intro h1{font-size:clamp(28px,3.2vw,44px);letter-spacing:-1.8px;line-height:1.15;margin:13px 0 9px;font-weight:750}.intro h1 em{font-family:Georgia,"Times New Roman",serif;font-weight:400;color:var(--green)}.intro-copy{font-size:13px;color:var(--muted);margin:0}.session-score{display:flex;align-items:center;gap:24px;text-align:center;padding-right:9px}.session-score div{display:flex;flex-direction:column;gap:6px}.session-score strong{font-family:var(--mono);font-size:33px;font-weight:500;line-height:1}.session-score span:not(.score-divider){font-size:8px;letter-spacing:1.7px;font-weight:600}.session-score .score-divider{font-size:34px;color:#c4cbbd;font-weight:200}
+.launcher-picker{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-bottom:23px}.launcher-card{background:transparent;border:1px solid var(--line);border-radius:9px;padding:19px 18px;display:flex;align-items:center;gap:15px;text-align:left;position:relative;min-width:0}.launcher-card:hover:not(:disabled){background:#efeee3;border-color:#a8b39f}.launcher-card.selected{background:#eeefdd;border-color:#697e56;box-shadow:inset 0 0 0 1px #697e5610}.launcher-icon{display:grid;place-items:center;flex-shrink:0;background:#e8eadf;border-radius:50%;width:51px;height:51px}.selected .launcher-icon{background:#dfe4c5}.launcher-icon svg{width:34px;height:34px;stroke-width:1.5}.launcher-card-copy{display:flex;flex-direction:column;gap:5px}.card-kicker{font-family:var(--mono);font-size:8px;letter-spacing:.65px;color:var(--muted)}.launcher-card-copy strong{font-size:17px;letter-spacing:-.5px}.launcher-card-copy>span:last-child{font-size:10px;color:var(--muted)}.selection-mark{display:grid;place-items:center;width:16px;height:16px;border:1px solid #b6c0ae;border-radius:50%;font-size:10px;color:transparent;margin-left:auto;align-self:flex-start;flex-shrink:0}.selected .selection-mark{color:#f6f4e8;background:#5e754c;border-color:#5e754c}
+.workbench{display:grid;grid-template-columns:305px minmax(0,1fr);border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--cream)}.control-panel{padding:25px 24px;border-right:1px solid var(--line)}.panel-heading{display:flex;align-items:center;justify-content:space-between;gap:4px}.panel-heading .eyebrow{font-size:8px;letter-spacing:1.4px}.tiny-label{font:8px var(--mono);color:#7c8979}.control-panel h2{font-size:22px;letter-spacing:-.75px;margin:17px 0 8px}.control-description{font-size:11px;line-height:1.7;color:var(--muted);margin:0 0 24px;min-height:38px}fieldset{border:0;padding:0;margin:0;min-width:0}.parameter{margin-bottom:19px}.parameter-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.parameter-label label{font-size:11px;font-weight:700}.parameter-label>span{font:11px var(--mono);color:#85907c}.input-wrap{display:flex;align-items:center;border:1px solid #cbd2c4;background:#fffef9;border-radius:5px;height:44px;padding-right:12px}.input-wrap:focus-within{border-color:var(--orange)}.input-wrap input{border:0;min-width:0;width:100%;background:transparent;color:var(--ink);padding:10px 12px;font:17px var(--mono);border-radius:5px;outline:none}.input-wrap input:focus-visible{outline:2px solid var(--orange)}.input-wrap>span{font:11px var(--mono);color:var(--muted);white-space:nowrap}.parameter-hint{font-size:9px;line-height:1.5;color:var(--muted);margin:6px 0 0}.launch-readout{background:#edf0e5;border-radius:6px;padding:13px 14px;margin-top:2px}.launch-readout>span{font-size:9px;font-weight:650}.launch-readout>div{display:flex;align-items:baseline;gap:5px;margin:5px 0}.launch-readout strong{font:27px var(--mono);letter-spacing:-1px}.launch-readout div>span{font:11px var(--mono)}.launch-readout svg{margin-left:auto;width:53px;height:28px;stroke:#acb7a3;stroke-width:1}.launch-readout svg #mini-vector{stroke:var(--green);stroke-width:1.6}.launch-readout p{font:9px var(--mono);margin:5px 0 0;color:var(--muted)}.launch-button{display:flex;align-items:center;justify-content:space-between;border:0;border-radius:5px;background:var(--orange);color:#fffaf0;font-size:13px;font-weight:750;width:100%;padding:15px 15px;margin-top:19px;box-shadow:0 3px 0 #a63f23}.launch-button:hover:not(:disabled){background:#c64820}.launch-button svg{width:20px;height:20px}.button-subline{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:8px;color:var(--muted);margin-top:12px;line-height:1.5}kbd{font:8px var(--mono);border:1px solid #d3d9cb;border-radius:3px;padding:3px 4px;color:#7d8875;white-space:nowrap}.equation-box{border-top:1px solid var(--line);margin-top:23px;padding-top:15px}.equation-box summary{font-size:10px;font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}.equation-box summary::-webkit-details-marker{display:none}.equation-box summary span{font-size:15px;transition:transform .2s}.equation-box:not([open]) summary span{transform:rotate(-90deg)}.equation-box .formula{font:12px var(--mono);margin:14px 0 9px;color:var(--green);line-height:1.7}.equation-box p{font-size:10px;line-height:1.7;color:var(--muted);margin:7px 0}.equation-box .energy-summary{font-family:var(--mono);font-size:9px}.field-error{font-size:11px;color:#ac3c22;line-height:1.5}
+.court-panel{min-width:0;display:flex;flex-direction:column}.court-toolbar{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 21px;border-bottom:1px solid var(--line);gap:10px}.court-toolbar>div:first-child{display:flex;gap:7px;align-items:center}.court-toolbar strong{font:8px var(--mono);letter-spacing:.8px}.court-toggles{display:flex;gap:16px}.court-toggles label{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--muted);cursor:pointer}.court-toggles input{width:12px;height:12px;accent-color:var(--green);margin:0}.canvas-wrap{position:relative;background:#e9efdf;aspect-ratio:16/9.8;overflow:hidden;min-height:280px}canvas{display:block;width:100%;height:100%}.court-note{position:absolute;top:24px;left:26px;pointer-events:none;display:flex;flex-direction:column;gap:10px}.court-note-label{font:8px var(--mono);letter-spacing:1.5px;color:#5d765e}.court-note strong{font:italic 25px/1.16 Georgia,serif;letter-spacing:-.5px;color:#526d51}.court-note>span:last-child{font:8px var(--mono);color:#778b72}.air-badge{position:absolute;top:22px;right:22px;font:7px var(--mono);letter-spacing:1px;color:#6e8668;border:1px solid #c5d3bc;padding:6px 8px;border-radius:3px}.offscreen-note{position:absolute;top:18px;left:50%;transform:translateX(-50%);padding:9px 12px;border-radius:5px;background:#263d35;color:white;font:10px var(--mono);white-space:nowrap}.result-overlay{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);width:min(330px,85%);padding:24px 24px 20px;border-radius:10px;background:#fffdf3f5;box-shadow:0 10px 50px #273e3524;border:1px solid #cdd4bf;text-align:center;animation:result-in .25s ease-out}.result-kicker{font:8px var(--mono);letter-spacing:1.7px;color:var(--orange)}.result-overlay h3{font:italic 33px Georgia,serif;letter-spacing:-1px;margin:10px 0;color:var(--green)}.result-overlay p{font-size:11px;line-height:1.6;color:var(--muted);margin:0 0 14px}.result-overlay button{display:inline-flex;gap:10px;align-items:center;padding:10px 17px;border:0;border-radius:5px;background:var(--green);color:#fffdf3;font-size:11px;font-weight:600}.result-overlay button svg{width:14px;height:14px}.flight-dashboard{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:18px 7px;background:#f7f7ec}.flight-dashboard>div{padding:0 17px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:9px}.flight-dashboard>div:last-child{border:0}.flight-dashboard span{font-size:7px;font-weight:700;letter-spacing:.9px}.flight-dashboard strong{font:19px var(--mono);white-space:nowrap;letter-spacing:-.5px}.flight-dashboard small{font-size:9px;color:var(--muted);letter-spacing:0}.shot-feedback{padding:23px 23px;display:flex;align-items:flex-start;gap:12px;flex:1}.feedback-icon{display:grid;place-items:center;border:1px solid #c8d0be;border-radius:50%;width:27px;height:27px;flex-shrink:0;font-size:15px;color:#668157}.shot-feedback>div{flex:1}.shot-feedback strong{font-size:11px}.shot-feedback p{font-size:10px;line-height:1.7;color:var(--muted);margin:6px 0 0;max-width:470px}.shot-feedback>.text-button{padding-top:4px;font-size:10px}.notebook{margin-top:31px}.notebook-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}.notebook-heading .eyebrow{font-size:8px}.notebook h2{font-size:19px;font-weight:650;letter-spacing:-.5px;margin:8px 0 19px}.notebook h2 span{font:9px var(--mono);letter-spacing:0;vertical-align:middle;margin-left:8px;padding:4px 6px;background:#e7ebdf;border-radius:3px;color:var(--muted)}.notebook-heading .text-button{font-size:10px;align-self:flex-end;margin-bottom:13px}.history-scroll{overflow:auto;border:1px solid var(--line);border-radius:6px}table{width:100%;border-collapse:collapse;text-align:left;font-size:10px;white-space:nowrap}thead{background:#ecefe4}th{font-size:8px;font-weight:650;letter-spacing:.7px;padding:12px 17px;color:var(--muted)}td{border-top:1px solid var(--line);padding:13px 17px;font-family:var(--mono);font-size:9px}td:nth-child(2){font-family:inherit;font-weight:650}.empty-history td{text-align:center;padding:26px 12px;font:11px inherit;color:var(--muted)}.outcome-pill{font:8px var(--mono);padding:4px 7px;border-radius:3px;background:#e7eadf;color:#63745a}.outcome-pill.made{background:#dfeacb;color:#416330}.restore-button{border:0;background:transparent;color:var(--green);font-size:10px;text-decoration:underline;text-underline-offset:3px}footer{display:flex;justify-content:space-between;gap:15px;font-size:9px;color:#7a8575;padding:32px 0}footer strong{font-size:10px;letter-spacing:-.5px;color:#53664c;margin-right:8px}footer>span:last-child{font:7px var(--mono);letter-spacing:.6px}.footer-dot{padding:0 8px}dialog{border:1px solid #c7d0bd;border-radius:14px;background:var(--paper);color:var(--ink);width:min(620px,calc(100% - 28px));max-height:85vh;padding:27px 35px;box-shadow:0 25px 100px #19352433}dialog::backdrop{background:#1c322b70;backdrop-filter:blur(4px)}.guide-header{display:flex;align-items:center;justify-content:space-between}.guide-header .icon-button{font-size:25px;flex-shrink:0}.guide-header .eyebrow{font-size:8px}dialog h2{font:italic 31px Georgia,serif;letter-spacing:-.8px;margin:19px 0 15px}dialog p{font-size:12px;line-height:1.85;color:var(--muted)}.guide-section{border-top:1px solid var(--line);margin-top:23px;padding-top:9px}.guide-section h3{font-size:13px}.guide-equation{font:13px var(--mono);background:#e8eddd;padding:13px;border-radius:5px;line-height:1.6}.guide-tip{background:#e7eace;padding:17px 20px;border-radius:6px;margin:20px 0}.guide-tip strong{font-size:12px}.guide-tip p{margin-bottom:0}.guide-shortcuts{font-size:10px!important}@keyframes result-in{from{opacity:0;transform:translate(-50%,-45%)}to{opacity:1;transform:translate(-50%,-50%)}}
+@media(min-width:1450px){.canvas-wrap{aspect-ratio:16/9}.control-panel{padding:28px}.workbench{grid-template-columns:320px minmax(0,1fr)}}
+@media(max-width:1100px){.site-shell{padding:0 27px}.launcher-card{padding:17px 13px;gap:10px}.launcher-icon{width:42px;height:42px}.launcher-card-copy strong{font-size:15px}.launcher-card-copy>span:last-child{font-size:9px}.card-kicker{font-size:7px}.workbench{grid-template-columns:280px minmax(0,1fr)}.control-panel{padding:22px 19px}.court-note strong{font-size:22px}.court-note{top:22px;left:20px}.air-badge{right:15px;font-size:6px}.flight-dashboard>div{padding:0 10px}.flight-dashboard span{font-size:6px;letter-spacing:.4px}.flight-dashboard strong{font-size:17px}.canvas-wrap{aspect-ratio:16/11.5}.shot-feedback{padding:19px 17px}.shot-feedback>.text-button{font-size:0;gap:0}.shot-feedback>.text-button svg{width:15px;height:15px}.header-caption{font-size:8px}}
+@media(max-width:800px){.site-shell{padding:0 20px}.site-header{height:75px}.header-caption{display:none}.intro{padding-top:28px}.intro h1{font-size:32px}.session-score{gap:17px}.session-score strong{font-size:27px}.session-score span:not(.score-divider){font-size:7px}.launcher-card{gap:9px;padding:13px 10px;align-items:flex-start}.launcher-icon{width:33px;height:33px}.launcher-icon svg{width:25px;height:25px}.card-kicker{display:none}.launcher-card-copy strong{font-size:13px}.launcher-card-copy{gap:5px;padding-top:2px}.launcher-card-copy>span:last-child{font-size:8px;line-height:1.5}.selection-mark{position:absolute;top:5px;right:5px;width:10px;height:10px;font-size:7px}.workbench{grid-template-columns:240px minmax(0,1fr)}.control-panel{padding:20px 17px}.tiny-label{display:none}.control-panel h2{font-size:21px}.control-description{font-size:10px}.court-toolbar{padding:0 12px}.court-toolbar strong{font-size:7px}.court-toggles{gap:8px}.court-toggles label{font-size:8px}.canvas-wrap{aspect-ratio:16/16;min-height:350px}.court-note{left:15px;top:20px}.court-note strong{font-size:21px}.court-note>span:last-child{font-size:7px}.air-badge{top:auto;bottom:12px;right:10px}.flight-dashboard{grid-template-columns:repeat(2,1fr);row-gap:17px}.flight-dashboard>div:nth-child(2){border:0}.flight-dashboard span{font-size:7px}.shot-feedback{padding:19px 13px;gap:8px}.feedback-icon{width:23px;height:23px}.shot-feedback p{font-size:10px}.shot-feedback strong{font-size:10px}.result-overlay{top:50%;padding:21px 15px}.result-overlay h3{font-size:29px}footer{flex-direction:column;gap:12px}}
+@media(max-width:620px){.site-shell{padding:0 15px}.site-header{height:69px}.brand{font-size:23px}.brand svg{width:29px;height:29px}.header-actions{gap:15px}.header-actions .text-button{font-size:10px}.icon-button{width:30px;height:30px}.intro{padding:27px 0 24px}.intro .eyebrow{font-size:7px;letter-spacing:1px}.intro h1{font-size:27px;letter-spacing:-1px}.intro-copy{font-size:10px}.session-score{gap:12px;padding:0}.session-score strong{font-size:23px}.session-score span:not(.score-divider){font-size:6px;letter-spacing:1px}.score-divider{font-size:24px!important}.launcher-picker{gap:7px;margin-bottom:16px}.launcher-card{flex-direction:column;gap:6px;padding:12px 10px}.launcher-icon{width:31px;height:31px}.launcher-card-copy strong{font-size:12px;letter-spacing:-.3px}.launcher-card-copy>span:last-child{font-size:8px}.workbench{grid-template-columns:1fr;overflow:visible}.control-panel{border-right:0;border-bottom:1px solid var(--line);padding:20px}.panel-heading .tiny-label{display:block}.control-panel h2{margin-top:12px}.control-description{min-height:0;margin-bottom:18px}.control-panel #parameter-inputs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.parameter{margin-bottom:4px}.parameter-label label{font-size:10px}.parameter-hint{font-size:8px}.launch-readout{margin-top:13px;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:0 5px;padding:12px 14px}.launch-readout>div{grid-area:1/2/3/3;margin:0;justify-content:flex-end}.launch-readout p{font-size:8px}.launch-readout svg{display:none}.launch-readout strong{font-size:25px}.launch-button{margin-top:14px}.button-subline{margin-top:10px;font-size:8px}.equation-box{margin-top:16px;padding-top:12px}.equation-box .formula{margin:10px 0 6px}.equation-box p{font-size:10px}.canvas-wrap{aspect-ratio:16/12;min-height:0}.court-panel{border-radius:0 0 12px 12px;overflow:hidden}.court-toolbar{height:43px;padding:0 15px}.court-note{top:17px;left:18px}.court-note strong{font-size:21px}.court-note-label{font-size:7px}.court-note>span:last-child{font-size:7px}.flight-dashboard{grid-template-columns:repeat(4,1fr);padding:16px 5px}.flight-dashboard span{font-size:5.5px;letter-spacing:.1px}.flight-dashboard strong{font-size:15px}.flight-dashboard small{font-size:8px}.flight-dashboard>div{padding:0 7px;gap:7px}.flight-dashboard>div:nth-child(2){border-right:1px solid var(--line)}.shot-feedback{padding:18px 16px}.notebook{margin-top:27px}.notebook h2{font-size:17px}th,td{padding:11px 13px}.empty-history td{font-size:10px}.notebook-heading .text-button{font-size:9px}dialog{padding:22px}.guide-header .eyebrow{font-size:6px;letter-spacing:1px}.guide-equation{font-size:11px}.guide-shortcuts{font-size:9px!important}.result-overlay{top:43%}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+</style>
+
+</head>
+<body>
+  <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="icon-ball" viewBox="0 0 32 32"><circle cx="16" cy="16" r="13"/><path d="M3 16h26M16 3v26M7 6c11 5 11 15 0 20M25 6c-11 5-11 15 0 20"/></symbol>
+    <symbol id="icon-sling" viewBox="0 0 40 40"><path d="M18 35V23L8 11V5M22 35V23L32 11V5M8 7l12 11L32 7"/><circle cx="20" cy="18" r="3"/><path d="M15 35h10"/></symbol>
+    <symbol id="icon-jet" viewBox="0 0 40 40"><circle cx="23" cy="15" r="9"/><path d="M17 8c8 4 11 9 10 15M14 16l18-3M12 19l-5 8 6 2 4-7M6 32l-3 5M12 33l-2 4M6 26l-3 3"/></symbol>
+    <symbol id="icon-weight" viewBox="0 0 40 40"><path d="M8 7h21v25M8 7v8M3 15h10v12H3zM16 33l16-11M17 33h18M5 4h27"/><circle cx="30" cy="18" r="4"/><path d="M8 30v6m-3-3 3 3 3-3"/></symbol>
+    <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+    <symbol id="icon-reset" viewBox="0 0 24 24"><path d="M4 11a8 8 0 1 1 2 7M4 5v6h6"/></symbol>
+    <symbol id="icon-volume" viewBox="0 0 24 24"><path d="m11 4-6 5H2v6h3l6 5zM15 8a6 6 0 0 1 0 8M18 5a10 10 0 0 1 0 14"/></symbol>
+    <symbol id="icon-muted" viewBox="0 0 24 24"><path d="m11 4-6 5H2v6h3l6 5zM16 9l6 6m0-6-6 6"/></symbol>
+  </svg>
+
+  <div class="site-shell">
+    <header class="site-header">
+      <a href="#page-title" class="brand" aria-label="Trickshot home"><svg><use href="#icon-ball"/></svg><span>TRICKSHOT<span class="brand-dot">.</span></span></a>
+      <span class="header-caption">A PHYSICS PLAYGROUND</span>
+      <div class="header-actions">
+        <button class="text-button" id="guide-open">Physics guide <span aria-hidden="true">↗</span></button>
+        <button class="icon-button" id="sound-toggle" aria-label="Turn sound on" aria-pressed="false"><svg><use href="#icon-muted"/></svg></button>
+      </div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <div><p class="eyebrow"><span class="live-dot"></span> EXPERIMENT 01 / THE COURT</p><h1 id="page-title">Big shots. <em>Real physics.</em></h1><p class="intro-copy">Pick a launcher. Set the numbers. Find the net.</p></div>
+        <div class="session-score"><div><strong id="makes-total">0</strong><span>BUCKETS</span></div><span class="score-divider">/</span><div><strong id="attempts-total">0</strong><span>ATTEMPTS</span></div></div>
+      </section>
+
+      <section class="launcher-picker" aria-label="Choose your launcher">
+        <button class="launcher-card selected" data-launcher="slingshot" aria-pressed="true"><span class="launcher-icon"><svg><use href="#icon-sling"/></svg></span><span class="launcher-card-copy"><span class="card-kicker">01 / ELASTIC ENERGY</span><strong>Slingshot</strong><span>Force magnitude + direction</span></span><span class="selection-mark" aria-hidden="true">✓</span></button>
+        <button class="launcher-card" data-launcher="jetpack" aria-pressed="false"><span class="launcher-icon"><svg><use href="#icon-jet"/></svg></span><span class="launcher-card-copy"><span class="card-kicker">02 / IMPULSE</span><strong>Jetpack ball</strong><span>X impulse + Y impulse</span></span><span class="selection-mark" aria-hidden="true">✓</span></button>
+        <button class="launcher-card" data-launcher="counterweight" aria-pressed="false"><span class="launcher-icon"><svg><use href="#icon-weight"/></svg></span><span class="launcher-card-copy"><span class="card-kicker">03 / GRAVITATIONAL ENERGY</span><strong>Falling weight</strong><span>Mass + drop height + direction</span></span><span class="selection-mark" aria-hidden="true">✓</span></button>
+      </section>
+
+      <section class="workbench" aria-label="Shot experiment">
+        <aside class="control-panel">
+          <div class="panel-heading"><span class="eyebrow">SET YOUR SHOT</span><span class="tiny-label" id="mode-tag">01 — SLINGSHOT</span></div>
+          <h2 id="control-title">Pull. Aim. Release.</h2>
+          <p class="control-description" id="control-description">Store energy in the band, then choose where it sends the ball.</p>
+          <form id="shot-form">
+            <fieldset id="shot-fields"><legend class="sr-only">Launcher settings</legend><div id="parameter-inputs"></div></fieldset>
+            <div class="launch-readout"><span>Resulting launch speed</span><div><strong id="launch-speed">10.41</strong><span>m/s</span><svg viewBox="0 0 55 28" aria-hidden="true"><path d="M2 25h50M4 24V3"/><path id="mini-vector" d="M4 24 22 4m-1 7 1-7-7 2"/></svg></div><p id="launch-components">vₓ = 5.97 · vᵧ = 8.53 m/s</p></div>
+            <p class="field-error" id="field-error" role="alert" hidden></p>
+            <button type="submit" class="launch-button" id="launch-button"><span id="launch-label">Launch shot</span><svg><use href="#icon-arrow"/></svg></button>
+            <div class="button-subline"><span>Make a prediction, then give it a shot.</span><kbd>SPACE</kbd></div>
+          </form>
+          <details class="equation-box" id="equation-details" open><summary>The physics behind it <span>⌄</span></summary><div id="equation-content"></div></details>
+        </aside>
+
+        <div class="court-panel">
+          <div class="court-toolbar"><div><span class="live-dot"></span><strong id="court-status">READY TO LAUNCH</strong></div><div class="court-toggles"><label><input type="checkbox" id="trail-toggle" checked> Last shot</label><label><input type="checkbox" id="slow-toggle"> Slow motion</label></div></div>
+          <div class="canvas-wrap" id="canvas-wrap">
+            <canvas id="court" width="1280" height="760" aria-label="Basketball court: the ball starts at 1.20 metres high, 10 metres left of a hoop at 3.05 metres. Positive X is right and positive Y is up."></canvas>
+            <div class="court-note"><span class="court-note-label">THE CHALLENGE</span><strong>Ten metres.<br>One perfect arc.</strong><span>Ball: 0.60 kg &nbsp;·&nbsp; Gravity: 9.81 m/s²</span></div>
+            <span class="air-badge">IDEAL AIR · NO DRAG</span>
+            <div class="offscreen-note" id="offscreen-note" hidden>↑ Ball above the court</div>
+            <div class="result-overlay" id="result-overlay" hidden><span class="result-kicker" id="result-kicker">THAT’S A BUCKET</span><h3 id="result-title">Nothing but net.</h3><p id="result-copy"></p><button id="retry-button">Shoot again <svg><use href="#icon-reset"/></svg></button></div>
+          </div>
+          <div class="flight-dashboard" aria-label="Shot measurements"><div><span>FLIGHT TIME</span><strong id="flight-time">0.00 <small>s</small></strong></div><div><span>HORIZONTAL VELOCITY</span><strong id="flight-vx">— <small>m/s</small></strong></div><div><span>VERTICAL VELOCITY</span><strong id="flight-vy">— <small>m/s</small></strong></div><div><span>PEAK HEIGHT</span><strong id="flight-peak">— <small>m</small></strong></div></div>
+          <div class="shot-feedback" role="status" aria-live="polite"><span class="feedback-icon" id="feedback-icon">↗</span><div><strong id="feedback-title">Your first attempt starts here.</strong><p id="feedback-copy">The dotted line will record your shot. Adjust one value at a time to see what changes.</p></div><button class="text-button" id="reset-shot" title="Return ball to launcher (R)">Reset <svg><use href="#icon-reset"/></svg></button></div>
+        </div>
+      </section>
+
+      <section class="notebook" aria-labelledby="notebook-title"><div class="notebook-heading"><div><span class="eyebrow">TRY. NOTICE. ADJUST.</span><h2 id="notebook-title">Your shot notebook <span id="notebook-count">0 shots</span></h2></div><button id="clear-notebook" class="text-button" disabled>Clear session</button></div><div class="history-scroll"><table><thead><tr><th scope="col">SHOT</th><th scope="col">LAUNCHER</th><th scope="col">YOUR INPUTS</th><th scope="col">SPEED</th><th scope="col">PEAK</th><th scope="col">RESULT</th><th scope="col"><span class="sr-only">Restore settings</span></th></tr></thead><tbody id="shot-history"><tr class="empty-history"><td colspan="7">Every attempt is an experiment. Your results will appear here.</td></tr></tbody></table></div></section>
+    </main>
+    <footer><span><strong>TRICKSHOT.</strong> A little trial. A little error. A lot of physics.</span><span>SI UNITS <span class="footer-dot">·</span> 2D MOTION <span class="footer-dot">·</span> INFINITE RETRIES</span></footer>
+  </div>
+
+  <dialog id="physics-guide" aria-labelledby="guide-title"><div class="guide-header"><span class="eyebrow">THE RULES OF THIS LITTLE WORLD</span><button id="guide-close" class="icon-button" aria-label="Close physics guide">×</button></div><h2 id="guide-title">Three paths to the same arc.</h2><p>Each launcher turns your inputs into an initial velocity. After release, the same gravity acts on every ball. Nothing fires again during flight.</p><div class="guide-section"><h3>01 — Slingshot</h3><p>An ideal linear spring is drawn a fixed <strong>0.50 m</strong>. You set the force at full draw and the launch angle. The band’s force decreases to zero as it relaxes, so its average force is half the peak force.</p><div class="guide-equation">E = ½F<sub>peak</sub>d &nbsp; → &nbsp; v = √(F<sub>peak</sub>d / m)</div><p>All stored elastic energy becomes the ball’s kinetic energy. The model neglects the band’s mass and losses.</p></div><div class="guide-section"><h3>02 — Jetpack ball</h3><p>Two ideal instantaneous impulses act together at launch: <strong>Jₓ</strong> and <strong>Jᵧ</strong>, measured in newton-seconds (N·s). Positive X points right; positive Y points up. Negative inputs point the opposite way.</p><div class="guide-equation">vₓ = Jₓ / m &nbsp; · &nbsp; vᵧ = Jᵧ / m</div><p>The ball starts at rest. The jetpack is treated as massless; fuel loss and burn duration are ignored. An impulse is a change in momentum, not a force.</p></div><div class="guide-section"><h3>03 — Falling weight</h3><p>A counterweight of mass <strong>M</strong> falls through height <strong>h</strong>. An ideal mechanism transfers all the lost gravitational potential energy to the ball. A lossless guide sets the ball’s exit direction.</p><div class="guide-equation">Mgh = ½mv² &nbsp; → &nbsp; v = √(2Mgh / m)</div><p>This is an ideal energy-transfer model, not a simulated hammer collision: the weight ends at rest, moving parts are massless, and there is no friction. Drop height refers to the weight’s travel, not the ball’s launch height.</p></div><div class="guide-section"><h3>The shared court</h3><p>The ball’s mass <strong>m = 0.60 kg</strong> and radius is <strong>0.12 m</strong>. It launches from <strong>(0, 1.20) m</strong> relative to the marked origin. The hoop is <strong>10.00 m</strong> away, <strong>3.05 m</strong> above the floor, with a <strong>0.45 m</strong> opening.</p><div class="guide-equation">x = vₓt &nbsp; · &nbsp; y = 1.20 + vᵧt − ½gt²</div><p>Gravity is <strong>9.81 m/s²</strong>; there is no air resistance, spin lift, or wind. Angles are counterclockwise from +X: 0° is right, 90° is up. A basket counts only when the entire ball fits through the hoop while moving downward.</p><p>Collisions use approximate restitution coefficients: floor <strong>0.72</strong>, rim <strong>0.65</strong>, and backboard <strong>0.78</strong>. A floor bounce retains 82% of horizontal speed. The net is visual only. Floor and bank shots count. Attempts end after the ball settles, leaves the horizontal play area, or reaches 12 simulated seconds.</p></div><div class="guide-tip"><strong>Try this experiment</strong><p>Keep the angle fixed. Double the slingshot’s peak force. Does the launch speed double? Compare that with doubling both jetpack impulses.</p></div><p class="guide-shortcuts"><kbd>SPACE</kbd> Launch &nbsp; <kbd>R</kbd> Reset &nbsp; · &nbsp; Settings are held fixed during flight.</p></dialog>
+<script>
+/* SI units throughout. The simulation has no rendering or browser dependencies. */
+(function (root) {
+  'use strict';
+
+  const C = Object.freeze({
+    gravity: 9.81,
+    ballMass: 0.60,
+    ballRadius: 0.12,
+    drawDistance: 0.50,
+    launchX: 2,
+    launchY: 1.2,
+    hoopX: 12,
+    hoopY: 3.05,
+    hoopWidth: 0.45,
+    rimRadius: 0.01,
+    boardX: 12.385,
+    boardBottom: 2.90,
+    boardTop: 4.10,
+    floorRestitution: 0.72,
+    rimRestitution: 0.65,
+    boardRestitution: 0.78,
+    step: 1 / 240,
+    worldWidth: 16,
+    worldHeight: 8.8,
+    maxFlightTime: 12,
+  });
+
+  const limits = Object.freeze({
+    slingshot: { force: [0, 600], angle: [-180, 180] },
+    jetpack: { jx: [-15, 15], jy: [-15, 15] },
+    counterweight: { mass: [0.1, 12], height: [0, 8], angle: [-180, 180] },
+  });
+
+  function launch(mode, values) {
+    if (!limits[mode]) throw new Error('Choose a launcher.');
+    for (const [key, [min, max]] of Object.entries(limits[mode])) {
+      if (typeof values[key] !== 'number' || !Number.isFinite(values[key]) || values[key] < min || values[key] > max) {
+        throw new Error(`${key} must be between ${min} and ${max}.`);
+      }
+    }
+    let vx, vy, energy, angle;
+    if (mode === 'jetpack') {
+      vx = values.jx / C.ballMass;
+      vy = values.jy / C.ballMass;
+      energy = 0.5 * C.ballMass * (vx * vx + vy * vy);
+      angle = Math.atan2(vy, vx) * 180 / Math.PI;
+    } else {
+      // Linear spring: F_peak = k*d, so stored energy = 1/2 * F_peak * d.
+      // Ideal counterweight: M*g*h = 1/2 * m_ball * v^2.
+      energy = mode === 'slingshot'
+        ? 0.5 * values.force * C.drawDistance
+        : values.mass * C.gravity * values.height;
+      angle = values.angle;
+      const speed = Math.sqrt(2 * energy / C.ballMass);
+      vx = speed * Math.cos(angle * Math.PI / 180);
+      vy = speed * Math.sin(angle * Math.PI / 180);
+    }
+    return { vx, vy, energy, angle, speed: Math.hypot(vx, vy) };
+  }
+
+  function createShot(mode, values) {
+    const initial = launch(mode, values);
+    return {
+      x: C.launchX, y: C.launchY, vx: initial.vx, vy: initial.vy,
+      t: 0, peak: C.launchY, speed: initial.speed,
+      initial, mode, values: { ...values },
+      contacts: 0, floorBounces: 0, rimHits: 0, boardHits: 0,
+      scored: false, done: false, scoreTime: null, scoreStats: null,
+      rimCrossing: null, closest: Infinity, path: [{ x: C.launchX, y: C.launchY }],
+      events: [],
+    };
+  }
+
+  function pointCollision(s, x, y, radius, restitution, kind) {
+    let dx = s.x - x, dy = s.y - y;
+    const d = Math.hypot(dx, dy), separation = C.ballRadius + radius;
+    if (d >= separation) return;
+    const nx = d > 1e-10 ? dx / d : 0;
+    const ny = d > 1e-10 ? dy / d : 1;
+    s.x = x + nx * (separation + 1e-6);
+    s.y = y + ny * (separation + 1e-6);
+    const inward = s.vx * nx + s.vy * ny;
+    if (inward < 0) {
+      s.vx -= (1 + restitution) * inward * nx;
+      s.vy -= (1 + restitution) * inward * ny;
+      s.contacts += 1;
+      s[kind] += 1;
+      s.events.push({ type: kind, speed: -inward });
+    }
+  }
+
+  function integrate(s, dt) {
+    if (s.done) return s;
+    const previous = { x: s.x, y: s.y, vy: s.vy };
+    s.x += s.vx * dt;
+    s.y += s.vy * dt - 0.5 * C.gravity * dt * dt;
+    s.vy -= C.gravity * dt;
+    s.t += dt;
+    if (previous.vy > 0 && s.vy <= 0) {
+      s.peak = Math.max(s.peak, previous.y + previous.vy ** 2 / (2 * C.gravity));
+    }
+    s.peak = Math.max(s.peak, s.y);
+    s.closest = Math.min(s.closest, Math.hypot(s.x - C.hoopX, s.y - C.hoopY));
+
+    // A basket requires downward passage with the entire ball inside the opening.
+    if (previous.y >= C.hoopY && s.y < C.hoopY && s.vy < 0) {
+      const f = (previous.y - C.hoopY) / (previous.y - s.y);
+      const crossX = previous.x + f * (s.x - previous.x);
+      const offset = crossX - C.hoopX;
+      if (s.rimCrossing === null || Math.abs(offset) < Math.abs(s.rimCrossing)) s.rimCrossing = offset;
+      if (!s.scored && Math.abs(offset) <= C.hoopWidth / 2 - C.ballRadius) {
+        s.scored = true;
+        s.scoreTime = s.t - dt + f * dt;
+        s.scoreStats = {
+          vx: s.vx, vy: previous.vy - C.gravity * f * dt, peak: s.peak,
+          contacts: s.contacts, floorBounces: s.floorBounces,
+          rimHits: s.rimHits, boardHits: s.boardHits,
+        };
+        s.events.push({ type: 'score' });
+      }
+    }
+
+    const rimOffset = C.hoopWidth / 2 + C.rimRadius;
+    pointCollision(s, C.hoopX - rimOffset, C.hoopY, C.rimRadius, C.rimRestitution, 'rimHits');
+    pointCollision(s, C.hoopX + rimOffset, C.hoopY, C.rimRadius, C.rimRestitution, 'rimHits');
+    pointCollision(s, C.boardX, Math.max(C.boardBottom, Math.min(C.boardTop, s.y)), 0.025, C.boardRestitution, 'boardHits');
+
+    if (s.y < C.ballRadius) {
+      s.y = C.ballRadius;
+      if (s.vy < 0) {
+        s.events.push({ type: 'floorBounces', speed: -s.vy });
+        s.vy = -s.vy * C.floorRestitution;
+        s.vx *= 0.82;
+        s.floorBounces += 1;
+        s.contacts += 1;
+        if (Math.abs(s.vy) < 0.65) s.vy = 0;
+      }
+    }
+    s.speed = Math.hypot(s.vx, s.vy);
+    const last = s.path[s.path.length - 1];
+    if (Math.hypot(s.x - last.x, s.y - last.y) > 0.07) s.path.push({ x: s.x, y: s.y });
+    if (s.t >= C.maxFlightTime || s.x < -3 || s.x > C.worldWidth + 5 ||
+        (s.y <= C.ballRadius + 0.001 && s.speed < 0.7) ||
+        (s.scored && s.t - s.scoreTime > 1)) s.done = true;
+    return s;
+  }
+
+  function step(s, dt = C.step) {
+    if (!Number.isFinite(dt) || dt <= 0 || dt > 1) throw new Error('Time step must be in (0, 1] seconds.');
+    s.events = [];
+    // Bound travel per collision check, including for the strongest counterweights.
+    const travel = Math.hypot(s.vx, s.vy) * dt + 0.5 * C.gravity * dt * dt;
+    const substeps = Math.max(1, Math.ceil(travel / (C.ballRadius * 0.3)));
+    for (let i = 0; i < substeps && !s.done; i++) integrate(s, dt / substeps);
+    return s;
+  }
+
+  function simulate(mode, values) {
+    const s = createShot(mode, values);
+    while (!s.done) step(s);
+    return s;
+  }
+
+  const api = { C, limits, launch, createShot, step, simulate };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.TrickPhysics = api;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+(() => {
+  'use strict';
+  const P = window.TrickPhysics, { C } = P;
+  const $ = (id) => document.getElementById(id);
+  const canvas = $('court'), ctx = canvas.getContext('2d');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const modes = {
+    slingshot: {
+      name: 'Slingshot', tag: '01 — SLINGSHOT', title: 'Pull. Aim. Release.',
+      description: 'Store energy in the band, then choose where it sends the ball.',
+      values: { force: 130, angle: 55 },
+      fields: [
+        { key: 'force', label: 'Peak band force', symbol: 'F', unit: 'N', step: 1, hint: '0–600 N · force at full draw' },
+        { key: 'angle', label: 'Launch direction', symbol: 'θ', unit: '°', step: 1, hint: '0° right · 90° up · ±180° left' },
+      ],
+      equation: 'E = ½F<sub>peak</sub>d &nbsp; · &nbsp; v = √(F<sub>peak</sub>d/m)',
+      explanation: 'Fixed draw <b>d = 0.50 m</b>. The ideal band acts like a linear spring: its force falls from your chosen peak to zero. All stored energy goes into the ball.',
+    },
+    jetpack: {
+      name: 'Jetpack ball', tag: '02 — JETPACK', title: 'Two axes. One burst.',
+      description: 'Give the ball a horizontal and vertical impulse. Both fire once at release.',
+      values: { jx: 4, jy: 5 },
+      fields: [
+        { key: 'jx', label: 'Horizontal impulse', symbol: 'Jₓ', unit: 'N·s', step: 0.1, hint: '−15 to 15 N·s · positive = right' },
+        { key: 'jy', label: 'Vertical impulse', symbol: 'Jᵧ', unit: 'N·s', step: 0.1, hint: '−15 to 15 N·s · positive = up' },
+      ],
+      equation: 'vₓ = Jₓ / m &nbsp; · &nbsp; vᵧ = Jᵧ / m',
+      explanation: 'Impulse changes momentum. With <b>m = 0.60 kg</b>, each 1 N·s adds 1.67 m/s on that axis. Ideal instantaneous burst; the jetpack adds no mass.',
+    },
+    counterweight: {
+      name: 'Falling weight', tag: '03 — FALLING WEIGHT', title: 'Drop it. Send it.',
+      description: 'A falling counterweight powers the ball. Set the drop, then redirect the energy.',
+      values: { mass: 1.2, height: 3, angle: 55 },
+      fields: [
+        { key: 'mass', label: 'Counterweight mass', symbol: 'M', unit: 'kg', step: 0.1, hint: '0.1–12 kg · ball stays 0.60 kg' },
+        { key: 'height', label: 'Weight’s drop height', symbol: 'h', unit: 'm', step: 0.1, hint: '0–8 m · vertical distance the weight falls' },
+        { key: 'angle', label: 'Exit direction', symbol: 'θ', unit: '°', step: 1, hint: '0° right · 90° up · ±180° left' },
+      ],
+      equation: 'Mgh = ½mv² &nbsp; → &nbsp; v = √(2Mgh/m)',
+      explanation: 'The weight’s lost potential energy becomes the ball’s kinetic energy. <b>Ideal, 100% energy transfer</b>; the guide changes direction without losing speed.',
+    },
+  };
+
+  let mode = 'slingshot', state = 'ready', shot = null, previousPath = null;
+  let history = [], attempts = 0, makes = 0, lastTime = 0, accumulator = 0;
+  let width = 1000, height = 590, scale = 60, floor = 500;
+  let confetti = [], sound = false, audio = null, launchFlash = 0;
+  const fmt = (n, digits = 2) => Math.abs(n) < 0.5 * 10 ** -digits ? (0).toFixed(digits) : n.toFixed(digits);
+  const position = (x, y) => [x * scale + (width - C.worldWidth * scale) / 2, floor - y * scale];
+
+  function selectMode(next) {
+    if (state === 'flying') return;
+    mode = next;
+    document.querySelectorAll('[data-launcher]').forEach((button) => {
+      const selected = button.dataset.launcher === mode;
+      button.classList.toggle('selected', selected);
+      button.setAttribute('aria-pressed', String(selected));
+    });
+    const config = modes[mode];
+    $('mode-tag').textContent = config.tag;
+    $('control-title').textContent = config.title;
+    $('control-description').textContent = config.description;
+    $('parameter-inputs').innerHTML = config.fields.map((field) => {
+      const [min, max] = P.limits[mode][field.key];
+      return `<div class="parameter"><div class="parameter-label"><label for="input-${field.key}">${field.label}</label><span>${field.symbol}</span></div><div class="input-wrap"><input id="input-${field.key}" name="${field.key}" type="number" inputmode="decimal" min="${min}" max="${max}" step="any" value="${config.values[field.key]}" aria-describedby="hint-${field.key}" required><span>${field.unit}</span></div><p id="hint-${field.key}" class="parameter-hint">${field.hint}</p></div>`;
+    }).join('');
+    $('equation-content').innerHTML = `<p class="formula">${config.equation}</p><p>${config.explanation}</p><p class="energy-summary" id="energy-summary"></p>`;
+    config.fields.forEach((field) => {
+      const input = $(`input-${field.key}`);
+      input.addEventListener('input', () => {
+        if (state === 'result') ready(false);
+        if (input.value !== '' && input.validity.valid) config.values[field.key] = input.valueAsNumber;
+        updateReadout();
+      });
+      // Arrow keys use a useful increment while arbitrary decimal entry stays valid.
+      input.addEventListener('keydown', (event) => {
+        if (!['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+        event.preventDefault();
+        const [min, max] = P.limits[mode][field.key];
+        input.value = Math.min(max, Math.max(min, Number(((input.valueAsNumber || 0) + (event.key === 'ArrowUp' ? field.step : -field.step)).toFixed(5))));
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    });
+    ready(false);
+    updateReadout();
+  }
+
+  function validValues() {
+    const values = {};
+    for (const field of modes[mode].fields) {
+      const input = $(`input-${field.key}`);
+      if (input.value === '' || !input.validity.valid) return null;
+      values[field.key] = input.valueAsNumber;
+    }
+    return values;
+  }
+
+  function updateReadout() {
+    const values = validValues();
+    $('field-error').hidden = true;
+    if (!values) {
+      $('launch-speed').textContent = '—';
+      $('launch-components').textContent = 'Enter a valid value in each field.';
+      $('energy-summary').textContent = '';
+      return;
+    }
+    const v = P.launch(mode, values);
+    $('launch-speed').textContent = fmt(v.speed);
+    $('launch-components').textContent = `vₓ = ${fmt(v.vx)} · vᵧ = ${fmt(v.vy)} m/s`;
+    $('energy-summary').textContent = `Launch kinetic energy: ${fmt(v.energy)} J`;
+    const angle = v.angle * Math.PI / 180;
+    const x = 26 + 20 * Math.cos(angle), y = 14 - 12 * Math.sin(angle);
+    $('mini-vector').setAttribute('d', `M26 14 L${x} ${y} M${x - 5 * Math.cos(angle - .5)} ${y + 5 * Math.sin(angle - .5)} L${x} ${y} L${x - 5 * Math.cos(angle + .5)} ${y + 5 * Math.sin(angle + .5)}`);
+  }
+
+  function setLocked(locked) {
+    $('shot-fields').disabled = locked;
+    document.querySelectorAll('[data-launcher]').forEach((button) => button.disabled = locked);
+    $('launch-button').disabled = locked;
+    $('clear-notebook').disabled = locked || history.length === 0;
+    document.querySelectorAll('.restore-button').forEach((button) => button.disabled = locked);
+    $('launch-label').textContent = locked ? 'Shot in flight…' : 'Launch shot';
+  }
+
+  function ready(clearFeedback = true) {
+    state = 'ready';
+    shot = null;
+    accumulator = 0;
+    confetti = [];
+    $('result-overlay').hidden = true;
+    $('offscreen-note').hidden = true;
+    $('court-status').textContent = 'READY TO LAUNCH';
+    $('flight-time').innerHTML = '0.00 <small>s</small>';
+    $('flight-vx').innerHTML = '— <small>m/s</small>';
+    $('flight-vy').innerHTML = '— <small>m/s</small>';
+    $('flight-peak').innerHTML = '— <small>m</small>';
+    setLocked(false);
+    if (clearFeedback) feedback('↗', 'Fresh ball. New hypothesis.', 'Change your inputs, then launch again. Your previous shot stays visible for comparison.');
+  }
+
+  function begin() {
+    if (state === 'flying') return;
+    const values = validValues();
+    if (!values) { $('shot-form').reportValidity(); return; }
+    Object.assign(modes[mode].values, values);
+    shot = P.createShot(mode, values);
+    state = 'flying';
+    accumulator = 0;
+    attempts += 1;
+    $('attempts-total').textContent = attempts;
+    $('result-overlay').hidden = true;
+    $('court-status').textContent = 'EXPERIMENT IN FLIGHT';
+    setLocked(true);
+    feedback('↗', `Attempt ${String(attempts).padStart(2, '0')} is in the air.`, 'Watch the vertical velocity fall as gravity acts. Horizontal velocity stays constant until a collision.');
+    launchFlash = 1;
+    tone(190, .12, 'triangle', .065, 440);
+    updateTelemetry();
+    if (window.innerWidth < 620) $('canvas-wrap').scrollIntoView({ behavior: reducedMotion ? 'instant' : 'smooth', block: 'center' });
+  }
+
+  function feedback(icon, title, copy) {
+    $('feedback-icon').textContent = icon;
+    $('feedback-title').textContent = title;
+    $('feedback-copy').textContent = copy;
+  }
+
+  function describeResult(s) {
+    if (s.scored) {
+      const stats = s.scoreStats;
+      const title = stats.floorBounces ? 'The bounce shot!' : stats.boardHits ? 'Bank is open.' : stats.rimHits ? 'A friendly roll.' : 'Nothing but net.';
+      return { title, short: 'BUCKET', text: `Through the hoop in ${fmt(s.scoreTime)} s. ${stats.contacts ? `${stats.contacts} contact${stats.contacts === 1 ? '' : 's'} along the way.` : 'A clean arc from launch to net.'}` };
+    }
+    if (s.initial.vx <= 0) return { title: 'Find the right direction.', short: 'MISSED', text: 'The hoop is to the right. Your initial horizontal velocity was zero or negative; try a positive X component.' };
+    if (s.peak < C.hoopY) return { title: 'A little more lift.', short: 'TOO LOW', text: `Peak height was ${fmt(s.peak)} m; the hoop is 3.05 m high. Increase the upward launch velocity.` };
+    if (s.rimHits) return { title: 'So close. Off the rim.', short: 'RIM', text: 'The ball touched the rim but did not pass through. Try a small adjustment to your inputs; the ball needs to fit fully inside the opening.' };
+    if (s.boardHits) return { title: 'Found the backboard.', short: 'BACKBOARD', text: 'The ball hit the backboard but missed the basket. Compare the recorded path and try a small change to the launch direction or speed.' };
+    if (s.rimCrossing !== null) {
+      const short = s.rimCrossing < 0;
+      return { title: short ? 'Not quite there.' : 'A little too far.', short: short ? 'SHORT' : 'LONG', text: `At hoop height on the way down, the ball was ${fmt(Math.abs(s.rimCrossing))} m ${short ? 'short of' : 'past'} the hoop’s centre. ${mode === 'jetpack' ? 'Try adjusting one impulse at a time.' : 'Try a small change in energy or angle.'}` };
+    }
+    return { title: 'That one got away.', short: 'OUT OF PLAY', text: 'The ball left the horizontal play area or reached the 12-second limit. Try less energy or a different direction.' };
+  }
+
+  function finish(cancelled = false) {
+    if (!shot || state !== 'flying') return;
+    const s = shot;
+    const result = cancelled && !s.scored ? { title: 'Shot reset.', short: 'RESET', text: 'Attempt recorded. Adjust your inputs and try again.' } : describeResult(s);
+    if (s.scored) makes += 1;
+    history.unshift({ number: attempts, mode, values: { ...s.values }, speed: s.initial.speed, peak: s.peak, made: s.scored, result: result.short });
+    previousPath = s.path.map((point) => ({ ...point }));
+    state = 'result';
+    $('court-status').textContent = s.scored ? 'BUCKET CONFIRMED' : 'EXPERIMENT COMPLETE';
+    $('makes-total').textContent = makes;
+    setLocked(false);
+    renderHistory();
+    feedback(s.scored ? '✓' : '↗', result.title, result.text);
+    if (s.scored && !cancelled) {
+      $('result-kicker').textContent = s.scoreStats.floorBounces ? 'BOUNCE. FLY. BUCKET.' : 'THAT’S A BUCKET';
+      $('result-title').textContent = result.title;
+      $('result-copy').textContent = result.text;
+      $('result-overlay').hidden = false;
+    }
+    updateTelemetry();
+  }
+
+  function inputSummary(item) {
+    const v = item.values;
+    if (item.mode === 'slingshot') return `${v.force} N · ${v.angle}°`;
+    if (item.mode === 'jetpack') return `Jₓ ${v.jx} · Jᵧ ${v.jy} N·s`;
+    return `${v.mass} kg · ${v.height} m · ${v.angle}°`;
+  }
+
+  function renderHistory() {
+    $('notebook-count').textContent = `${history.length} shot${history.length === 1 ? '' : 's'}`;
+    $('clear-notebook').disabled = state === 'flying' || history.length === 0;
+    $('shot-history').innerHTML = history.length ? history.map((item) => `<tr><td>${String(item.number).padStart(2, '0')}</td><td>${modes[item.mode].name}</td><td>${inputSummary(item)}</td><td>${fmt(item.speed)} m/s</td><td>${fmt(item.peak)} m</td><td><span class="outcome-pill ${item.made ? 'made' : ''}">${item.result}</span></td><td><button class="restore-button" data-restore="${item.number}" aria-label="Restore settings from shot ${item.number}">Reuse ↗</button></td></tr>`).join('') : '<tr class="empty-history"><td colspan="7">Every attempt is an experiment. Your results will appear here.</td></tr>';
+    document.querySelectorAll('[data-restore]').forEach((button) => {
+      button.addEventListener('click', () => {
+        if (state === 'flying') return;
+        const item = history.find((entry) => entry.number === Number(button.dataset.restore));
+        modes[item.mode].values = { ...item.values };
+        selectMode(item.mode);
+        feedback('↗', `Settings from shot ${item.number} restored.`, 'These are the exact inputs you used. Repeat the shot or change one value to compare.');
+        $('control-title').scrollIntoView({ behavior: reducedMotion ? 'instant' : 'smooth', block: 'nearest' });
+      });
+    });
+  }
+
+  function updateTelemetry() {
+    if (!shot) return;
+    const measurement = shot.scored ? shot.scoreStats : shot;
+    $('flight-time').innerHTML = `${fmt(shot.scored ? shot.scoreTime : shot.t)} <small>s</small>`;
+    $('flight-vx').innerHTML = `${fmt(measurement.vx)} <small>m/s</small>`;
+    $('flight-vy').innerHTML = `${fmt(measurement.vy)} <small>m/s</small>`;
+    $('flight-peak').innerHTML = `${fmt(measurement.peak)} <small>m</small>`;
+  }
+
+  function line(x1, y1, x2, y2, color, stroke = 1, dash = []) {
+    ctx.beginPath();ctx.setLineDash(dash);ctx.strokeStyle = color;ctx.lineWidth = stroke;
+    ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.setLineDash([]);
+  }
+  function worldLine(x1, y1, x2, y2, color, stroke = 1, dash = []) { line(...position(x1,y1),...position(x2,y2),color,stroke,dash); }
+  function circle(x,y,r,fill,stroke,strokeWidth = 1) {
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+    if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=strokeWidth;ctx.stroke();}
+  }
+  function label(text,x,y,color='#708169',size=9,align='left',font='mono') {
+    ctx.fillStyle=color;ctx.font=`${size}px ${font === 'mono' ? 'ui-monospace, SFMono-Regular, monospace' : 'Arial, sans-serif'}`;ctx.textAlign=align;ctx.fillText(text,x,y);
+  }
+  function arrow(x1,y1,x2,y2,color,stroke=1.5,head=5){
+    line(x1,y1,x2,y2,color,stroke);
+    const a=Math.atan2(y2-y1,x2-x1);
+    line(x2,y2,x2-head*Math.cos(a-.5),y2-head*Math.sin(a-.5),color,stroke);
+    line(x2,y2,x2-head*Math.cos(a+.5),y2-head*Math.sin(a+.5),color,stroke);
+  }
+
+  function drawBackground() {
+    ctx.clearRect(0,0,width,height);
+    const sky=ctx.createLinearGradient(0,0,0,floor);sky.addColorStop(0,'#e9efdf');sky.addColorStop(1,'#e0e9d1');
+    ctx.fillStyle=sky;ctx.fillRect(0,0,width,height);
+    // A quiet court-side skyline and mesh fence, all behind the physics plane.
+    const horizon=floor-scale*.8;
+    const buildings=[[-.4,1.2,1.8],[1,1.4,2.1],[3,1.0,1.4],[4.3,1.5,1.7],[6.2,.9,2.4],[7.8,1.1,1.5],[9,1.3,2.1],[11,1.6,1.6],[13.6,1.0,2.3],[15,.8,1.6]];
+    for(const [bx,bw,bh] of buildings){const [x]=position(bx,0);ctx.fillStyle='#d5dfc8';ctx.fillRect(x,horizon-bh*scale,bw*scale,bh*scale);for(let row=0;row<Math.floor(bh/.4);row++)for(let col=0;col<Math.floor(bw/.35);col++){ctx.fillStyle='#dee6d3';ctx.fillRect(x+col*.35*scale+8,horizon-bh*scale+12+row*.4*scale,5,6);}}
+    ctx.fillStyle='#cddabf';ctx.fillRect(0,horizon,width,scale*.8);
+    const fenceTop=floor-scale*1.4;
+    ctx.save();ctx.beginPath();ctx.rect(0,fenceTop,width,floor-fenceTop);ctx.clip();
+    for(let x=-200;x<width+200;x+=17){line(x,fenceTop,x+100,floor,'#b9caaa',.55);line(x,floor,x+100,fenceTop,'#b9caaa',.55);}ctx.restore();
+    line(0,fenceTop,width,fenceTop,'#acbfa0',2);
+    for(let x=18;x<width;x+=scale*2)line(x,fenceTop-3,x,floor,'#a4b894',2);
+    ctx.fillStyle='#dfac86';ctx.fillRect(0,floor,width,height-floor);
+    ctx.fillStyle='#d19c77';ctx.fillRect(0,floor,width,4);
+    line(0,floor,width,floor,'#ae8061',1.2);
+    line(0,height-12,width,height-12,'#e8c19f',1);
+    for(let x=0;x<width;x+=scale*3)line(x,floor+4,x+30,height,'#d5a280',1);
+    const [originX]=position(C.launchX,0), [hoopX]=position(C.hoopX,0);
+    const dimY=floor+29;
+    line(originX,dimY,hoopX,dimY,'#815f48',.8);
+    line(originX,dimY-5,originX,dimY+5,'#815f48',.8);line(hoopX,dimY-5,hoopX,dimY+5,'#815f48',.8);
+    const dimText='10.00 m TO THE HOOP';ctx.font='8px ui-monospace, monospace';const tw=ctx.measureText(dimText).width;
+    ctx.fillStyle='#dfac86';ctx.fillRect((originX+hoopX)/2-tw/2-8,dimY-7,tw+16,14);
+    label(dimText,(originX+hoopX)/2,dimY+3,'#795a43',8,'center');
+    label('x = 0',originX,floor+49,'#815f48',7,'center');label('x = 10 m',hoopX,floor+49,'#815f48',7,'center');
+    // Height guide and the launch-relative coordinate axes.
+    const [boardGuide,hoopY]=position(14.6,C.hoopY);
+    line(boardGuide,floor,boardGuide,hoopY,'#90a47f',.8,[3,4]);
+    line(boardGuide-4,hoopY,boardGuide+4,hoopY,'#90a47f');line(boardGuide-4,floor-1,boardGuide+4,floor-1,'#90a47f');
+    label('3.05 m',boardGuide+8,(floor+hoopY)/2,'#637a55',Math.max(7,Math.min(9,width/95)));
+    const ax=width-59,ay=height-31;arrow(ax,ay,ax+24,ay,'#82634a',1,4);arrow(ax,ay,ax,ay-24,'#82634a',1,4);
+    label('+x',ax+25,ay+3,'#82634a',7);label('+y',ax-4,ay-30,'#82634a',7);
+  }
+
+  function drawHoop(front=false) {
+    const [hx,hy]=position(C.hoopX,C.hoopY);
+    const [bx,by]=position(C.boardX,C.boardTop);
+    const radius=C.hoopWidth*scale/2;
+    if(!front){
+      const post=bx+scale*.65;
+      line(post,floor,post,by+scale*.65,'#8a9c83',6);
+      line(post,by+scale*.65,bx,by+scale*.65,'#8a9c83',5);
+      ctx.fillStyle='#eef1e4';ctx.fillRect(bx-2,by,5,(C.boardTop-C.boardBottom)*scale);
+      ctx.strokeStyle='#4f6852';ctx.lineWidth=1.7;ctx.strokeRect(bx-2,by,5,(C.boardTop-C.boardBottom)*scale);
+      line(bx-1,hy-scale*.43,bx-1,hy+scale*.08,'#d46539',2);
+      line(hx+radius,hy,bx,hy,'#ba512f',2.5);
+      ctx.fillStyle='#788d6b';ctx.fillRect(post-14,floor-5,28,5);
+      const sway=shot?.scored?Math.sin((shot.t-shot.scoreTime)*18)*Math.exp(-(shot.t-shot.scoreTime)*2)*5:0;
+      for(let i=0;i<=6;i++){
+        const x=hx-radius+i*radius/3,bottomX=hx-radius*.65+i*radius*.2167+sway;
+        line(x,hy+2,bottomX,hy+scale*.48,'#f8faf0',1.1);
+        if(i<6)line(x,hy+2,hx-radius*.65+(i+1)*radius*.2167+sway,hy+scale*.48,'#f8faf0',.8);
+      }
+      line(hx-radius*.82,hy+scale*.23,hx+radius*.82,hy+scale*.23,'#f8faf0',1);
+      label('THE TARGET',hx,by-15,'#647e58',7,'center');
+    } else {
+      // The cross-section shows two solid rim ends; the opening remains passable.
+      const rimOffset=(C.hoopWidth/2+C.rimRadius)*scale;
+      circle(hx-rimOffset,hy,Math.max(1.5,C.rimRadius*scale),'#c7562d');
+      circle(hx+rimOffset,hy,Math.max(1.5,C.rimRadius*scale),'#c7562d');
+      ctx.beginPath();ctx.ellipse(hx,hy,radius,2.5,0,0,Math.PI);ctx.strokeStyle='#d75f33';ctx.lineWidth=1.2;ctx.stroke();
+    }
+  }
+
+  function drawLauncher() {
+    const [x,y]=position(C.launchX,C.launchY);
+    const selected=modes[mode].values;
+    if(mode==='slingshot'){
+      line(x,floor-5,x,y+scale*.4,'#8c6846',7);
+      line(x,y+scale*.4,x-scale*.28,y-scale*.22,'#8c6846',6);
+      line(x,y+scale*.4,x+scale*.28,y-scale*.22,'#8c6846',6);
+      line(x-scale*.28,y-scale*.22,x,y,'#4a5d41',2.5);
+      line(x+scale*.28,y-scale*.22,x,y,'#4a5d41',2.5);
+      ctx.fillStyle='#8a7050';ctx.fillRect(x-13,floor-6,26,6);
+    } else if(mode==='jetpack') {
+      line(x,floor-4,x,y+scale*.25,'#89947d',4);
+      line(x-13,y+scale*.25,x+13,y+scale*.25,'#89947d',3);
+      ctx.fillStyle='#798970';ctx.fillRect(x-15,floor-6,30,6);
+    } else {
+      const rigX=x-scale*.8,top=y-scale*.9;
+      line(rigX,floor-4,rigX,top,'#7b896e',4);line(rigX-5,top,x-scale*.25,top,'#7b896e',4);
+      circle(x-scale*.25,top,4,'#d0dabd','#748867');
+      let drop=shot ? Math.min(1,shot.t*4) : 0;
+      const weightY=top+10+drop*(floor-top-33);
+      line(rigX+7,top,rigX+7,weightY,'#7b7356',1.5);
+      ctx.fillStyle='#667956';ctx.fillRect(rigX-2,weightY,18,18);
+      label('M',rigX+7,weightY+12,'#f5f3df',8,'center');
+      worldLine(C.launchX-.2,C.launchY-.25,C.launchX+.4,C.launchY+.15,'#647a54',4);
+      ctx.fillStyle='#81916d';ctx.fillRect(rigX-12,floor-5,scale*1.3,5);
+      label('RIG: SCHEMATIC',x-9,top-13,'#6b805d',6,'center');
+    }
+    if(state!=='flying'){
+      const initial=P.launch(mode,selected), a=initial.angle*Math.PI/180;
+      // A direction arrow only: no prediction of the ball's future trajectory.
+      const len=scale*.8;
+      arrow(x+Math.cos(a)*scale*.22,y-Math.sin(a)*scale*.22,x+Math.cos(a)*len,y-Math.sin(a)*len,'#789162',1.2,5);
+      if(mode!=='jetpack'){
+        line(x+scale*.18,y,x+scale*.9,y,'#a0b190',.8,[2,3]);
+        ctx.beginPath();ctx.arc(x,y,scale*.47,Math.min(0,-a),Math.max(0,-a));ctx.strokeStyle='#95a883';ctx.lineWidth=.8;ctx.stroke();
+        label(`${selected.angle}°`,x+scale*.62,y-8,'#607b53',8);
+      }
+      ball(C.launchX,C.launchY,0,mode==='jetpack');
+    }
+    label('LAUNCH / 1.20 m',x,y+scale*.57,'#627952',Math.max(6,Math.min(8,width/110)),'center');
+  }
+
+  function ball(wx,wy,rotation,jet=false) {
+    const [x,y]=position(wx,wy),r=C.ballRadius*scale;
+    ctx.save();ctx.translate(x,y);ctx.rotate(rotation);
+    if(jet){ctx.fillStyle='#506d63';ctx.fillRect(-r-5,-r*.7,5,r*1.4);line(-r-6,r*.3,-r-9,r*.7,'#9eb0a0',2);}
+    circle(0,0,r,'#e77836','#844928',Math.max(.8,scale*.018));
+    ctx.save();ctx.beginPath();ctx.arc(0,0,r-.2,0,Math.PI*2);ctx.clip();
+    line(-r,0,r,0,'#9d4e29',Math.max(.7,scale*.015));line(0,-r,0,r,'#9d4e29',Math.max(.7,scale*.015));
+    ctx.beginPath();ctx.ellipse(-r*.75,0,r*.7,r*1.2,0,0,Math.PI*2);ctx.strokeStyle='#9d4e29';ctx.lineWidth=Math.max(.7,scale*.014);ctx.stroke();
+    ctx.beginPath();ctx.ellipse(r*.75,0,r*.7,r*1.2,0,0,Math.PI*2);ctx.stroke();ctx.restore();
+    circle(-r*.32,-r*.35,r*.16,'#f6b16a');ctx.restore();
+  }
+
+  function drawPath(path,color,dotted=true) {
+    if(!path?.length)return;
+    ctx.beginPath();ctx.setLineDash(dotted?[2,5]:[]);ctx.strokeStyle=color;ctx.lineWidth=1.7;
+    path.forEach((p,i)=>{const [x,y]=position(p.x,p.y);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();ctx.setLineDash([]);
+  }
+
+  function draw(dt) {
+    drawBackground();
+    if($('trail-toggle').checked && previousPath)drawPath(previousPath,'#73927580');
+    drawHoop();drawLauncher();
+    if(shot){
+      drawPath(shot.path,state==='flying'?'#d16a3890':'#c6774380');
+      if(state==='flying'||state==='result'){
+        const [x]=position(shot.x,0);
+        ctx.save();ctx.globalAlpha=Math.max(.06,.19-shot.y*.012);ctx.beginPath();ctx.ellipse(x,floor-1,Math.max(4,scale*.13),2,0,0,Math.PI*2);ctx.fillStyle='#6b794d';ctx.fill();ctx.restore();
+        ball(shot.x,shot.y,shot.t*shot.initial.vx*1.5,shot.mode==='jetpack');
+        if(shot.mode==='jetpack'&&shot.t<.17){
+          const [bx,by]=position(shot.x,shot.y),a=shot.initial.angle*Math.PI/180;
+          arrow(bx-Math.cos(a)*scale*.2,by+Math.sin(a)*scale*.2,bx-Math.cos(a)*scale*.65,by+Math.sin(a)*scale*.65,'#e99837',3,2);
+        }
+      }
+      const offscreen=state==='flying'&&position(shot.x,shot.y)[1]<-10;
+      $('offscreen-note').hidden=!offscreen;
+      if(offscreen)$('offscreen-note').textContent=`↑ Ball at ${fmt(shot.y,1)} m · ${shot.vy>0?'rising':'falling'}`;
+    }
+    drawHoop(true);
+    if(launchFlash>0){launchFlash=Math.max(0,launchFlash-dt*4);const [x,y]=position(C.launchX,C.launchY);ctx.save();ctx.globalAlpha=launchFlash*.5;circle(x,y,(1-launchFlash)*32+9,null,'#e88d42',1.5);ctx.restore();}
+    if(!reducedMotion)for(const p of confetti){p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=160*dt;p.life-=dt;ctx.save();ctx.globalAlpha=Math.min(1,Math.max(0,p.life));ctx.translate(p.x,p.y);ctx.rotate(p.y*.05);ctx.fillStyle=p.color;ctx.fillRect(-2,-2,5,3);ctx.restore();}
+    confetti=confetti.filter(p=>p.life>0);
+  }
+
+  function celebrate() {
+    const [x,y]=position(C.hoopX,C.hoopY);
+    if(!reducedMotion)confetti=Array.from({length:44},(_,i)=>({x,y,vx:(Math.random()-.5)*220,vy:-80-Math.random()*160,life:1.6+Math.random(),color:['#e17a35','#647d4e','#f8d77c','#fffce9'][i%4]}));
+    tone(523,.16,'sine',.06);setTimeout(()=>tone(659,.16,'sine',.06),120);setTimeout(()=>tone(784,.3,'sine',.055),240);
+    feedback('✓','It’s in!','The ball crossed the hoop downward with enough clearance. Your shot is being recorded.');
+  }
+
+  function tone(frequency,duration,type='sine',gain=.035,endFrequency=null) {
+    if(!sound)return;
+    try{
+      if(!audio)audio=new(window.AudioContext||window.webkitAudioContext)();
+      if(audio.state==='suspended')audio.resume();
+      const osc=audio.createOscillator(),volume=audio.createGain();osc.type=type;osc.frequency.setValueAtTime(frequency,audio.currentTime);
+      if(endFrequency)osc.frequency.exponentialRampToValueAtTime(endFrequency,audio.currentTime+duration);
+      volume.gain.setValueAtTime(gain,audio.currentTime);volume.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);
+      osc.connect(volume);volume.connect(audio.destination);osc.start();osc.stop(audio.currentTime+duration);
+    }catch{/* Sound is optional; browser audio restrictions do not affect play. */}
+  }
+
+  function frame(timestamp) {
+    const dt=lastTime?Math.min((timestamp-lastTime)/1000,.05):0;lastTime=timestamp;
+    if(state==='flying'&&shot){
+      accumulator+=dt*($('slow-toggle').checked?.35:1);
+      while(accumulator>=C.step&&state==='flying'){
+        P.step(shot);accumulator-=C.step;
+        for(const event of shot.events){if(event.type==='score')celebrate();else if(event.speed>1.2)tone(event.type==='rimHits'?660:105,.065,'triangle',Math.min(.05,event.speed*.003));}
+        if(shot.done)finish();
+      }
+      updateTelemetry();
+    }
+    draw(dt);requestAnimationFrame(frame);
+  }
+
+  function resize() {
+    const rect=$('canvas-wrap').getBoundingClientRect();
+    width=rect.width;height=rect.height;
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+    scale=(width-30)/C.worldWidth;floor=height-60;
+  }
+
+  document.querySelectorAll('[data-launcher]').forEach(button=>button.addEventListener('click',()=>selectMode(button.dataset.launcher)));
+  $('shot-form').addEventListener('submit',event=>{event.preventDefault();begin();});
+  $('reset-shot').addEventListener('click',()=>{if(state==='flying')finish(true);ready();});
+  $('retry-button').addEventListener('click',()=>{ready();$('launch-button').focus();});
+  $('clear-notebook').addEventListener('click',()=>{
+    if(state==='flying')return;
+    history=[];attempts=0;makes=0;previousPath=null;
+    $('attempts-total').textContent='0';$('makes-total').textContent='0';
+    $('flight-time').innerHTML='0.00 <small>s</small>';
+    for(const id of ['flight-vx','flight-vy'])$(id).innerHTML='— <small>m/s</small>';
+    $('flight-peak').innerHTML='— <small>m</small>';
+    ready();renderHistory();feedback('↗','A fresh page.','Your notebook is clear. Choose a launcher and start a new experiment.');
+  });
+  $('sound-toggle').addEventListener('click',()=>{
+    sound=!sound;$('sound-toggle').setAttribute('aria-pressed',String(sound));$('sound-toggle').setAttribute('aria-label',`Turn sound ${sound?'off':'on'}`);
+    $('sound-toggle').querySelector('use').setAttribute('href',sound?'#icon-volume':'#icon-muted');tone(430,.07);
+  });
+  $('guide-open').addEventListener('click',()=>$('physics-guide').showModal());
+  $('guide-close').addEventListener('click',()=>$('physics-guide').close());
+  $('physics-guide').addEventListener('click',event=>{if(event.target===$('physics-guide')){const r=$('physics-guide').getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)$('physics-guide').close();}});
+  document.addEventListener('keydown',event=>{
+    if(event.repeat||event.ctrlKey||event.metaKey||event.altKey||$('physics-guide').open||/INPUT|TEXTAREA|SELECT|BUTTON/.test(document.activeElement.tagName))return;
+    if(event.code==='Space'){event.preventDefault();begin();}
+    if(event.key.toLowerCase()==='r'){event.preventDefault();if(state==='flying')finish(true);ready();}
+  });
+  document.addEventListener('visibilitychange',()=>{lastTime=0;accumulator=0;});
+  new ResizeObserver(resize).observe($('canvas-wrap'));
+  selectMode('slingshot');resize();requestAnimationFrame(frame);
+})();
+
+</script>
+</body>
+</html>
